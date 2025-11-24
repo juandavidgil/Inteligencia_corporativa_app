@@ -2,22 +2,22 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { URL } from "../config/URL";
 
 // ICONOS / IMÁGENES
-import agenda from "../../../assets/agenda.png";
-import aranda from "../../../assets/aranda.png";
-import financiero from "../../../assets/financiero.png";
-import indicadores from "../../../assets/indicadores.png";
-import operativo from "../../../assets/operativo.png";
+import agenda from "../../assets/img/agenda.png";
+import aranda from "../../assets/img/aranda.png";
+import financiero from "../../assets/img/financiero.png";
+import indicadores from "../../assets/img/indicadores.png";
+import operativo from "../../assets/img/operativo.png";
 
 interface DashboardItem {
   id: number;

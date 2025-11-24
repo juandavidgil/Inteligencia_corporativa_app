@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import Rol, Usuario, Proyecto, UsuarioProyecto, Dashboard
+from .models import Rol, Usuario, Proyecto, UsuarioProyecto, Dashboard, UsuarioDashboard
 
 class UsuarioAdmin(BaseUserAdmin):
     ordering = ('correo',)
@@ -27,3 +27,4 @@ admin.site.register(Usuario, UsuarioAdmin)
 admin.site.register(Proyecto)
 admin.site.register(UsuarioProyecto)
 admin.site.register(Dashboard)
+admin.site.register(UsuarioDashboard)

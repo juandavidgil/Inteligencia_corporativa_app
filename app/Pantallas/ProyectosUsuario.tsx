@@ -2,18 +2,18 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
-import Chia from "../../../assets/Chia.png";
 import Neiva from "../../assets/img//Neiva.jpg";
 import ATM from "../../assets/img/ATM.png";
 import Cartagena from "../../assets/img/Cartagena.png";
+import Chia from "../../assets/img/Chia.png";
 import MOVIDIC from "../../assets/img/MOVIDIC.png";
 import Silvania from "../../assets/img/Silvania.jpg";
 import VUS from "../../assets/img/VUS.png";

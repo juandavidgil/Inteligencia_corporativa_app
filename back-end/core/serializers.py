@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Usuario, Rol, Proyecto, Dashboard
+from .models import Usuario, Rol, Proyecto, Dashboard, UsuarioDashboard
 
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -29,3 +29,10 @@ class ProyectoConDashboardsSerializer(serializers.ModelSerializer):
     def get_dashboards(self, obj):
         qs = Dashboard.objects.filter(proyecto=obj, estado=True)
         return DashboardSerializer(qs, many=True).data
+
+class UsuarioDashboardSerializer(serializers.ModelSerializer):
+    dashboard = DashboardSerializer()
+
+    class Meta:
+        model = UsuarioDashboard
+        fields = ['id', 'usuario', 'proyecto', 'dashboard', 'fecha_asignacion']

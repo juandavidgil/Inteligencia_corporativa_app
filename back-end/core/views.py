@@ -6,7 +6,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .models import UsuarioProyecto
-from .models import Dashboard
+from .models import Dashboard 
+from .models import UsuarioDashboard
+
 from .serializers import DashboardSerializer
 import requests
 from django.conf import settings
@@ -148,13 +150,31 @@ def generar_token_powerbi(request):
 #MOSTRAR  TABLERO DEL PROYECTO
 @api_view(['GET'])
 def dashboards_con_embed(request, proyecto_id):
-
     try:
-        dashboards = Dashboard.objects.filter(proyecto_id=proyecto_id, estado=True)
-        serializer = DashboardSerializer(dashboards, many=True)
-        if not dashboards.exists():
-            return Response({"error": "No hay dashboards activos para este proyecto."}, status=404)
+        # 🟩 Nuevo: obtener el usuario desde query params
+        usuario_id = request.query_params.get('usuario_id')
+        if not usuario_id:
+            return Response({"error": "Debe enviar usuario_id"}, status=400)
 
+        # 🟩 Nuevo: filtrar dashboards asignados al usuario en ese proyecto
+        dashboards_ids = UsuarioDashboard.objects.filter(
+            usuario_id=usuario_id,
+            proyecto_id=proyecto_id
+        ).values_list('dashboard_id', flat=True)
+
+        # 🟩 Filtrar solo dashboards activos y asignados
+        dashboards = Dashboard.objects.filter(
+            proyecto_id=proyecto_id,
+            id__in=dashboards_ids,
+            estado=True
+        )
+
+        if not dashboards.exists():
+            return Response({"error": "No hay dashboards activos para este usuario en este proyecto."}, status=404)
+
+        serializer = DashboardSerializer(dashboards, many=True)
+
+        # 🔹 Configuración Power BI
         tenant_id = settings.POWER_BI_TENANT_ID
         client_id = settings.POWER_BI_CLIENT_ID
         client_secret = settings.POWER_BI_CLIENT_SECRET
@@ -182,7 +202,7 @@ def dashboards_con_embed(request, proyecto_id):
 
         dashboards_embed = []
 
-        # 🔹 Recorre cada dashboard
+        # 🔹 Recorre cada dashboard (idéntico a tu versión)
         for dash in serializer.data:
             report_id = dash.get('report_id')
             workspace_id = dash.get('workspace_id')
@@ -190,7 +210,6 @@ def dashboards_con_embed(request, proyecto_id):
             if not report_id:
                 continue
 
-            # Obtener datos del reporte
             url_report_api = f"https://api.powerbi.com/v1.0/myorg/groups/{workspace_id}/reports/{report_id}"
             headers_report = {"Authorization": f"Bearer {access_token}"}
             report_response = requests.get(url_report_api, headers=headers_report)
@@ -230,7 +249,7 @@ def dashboards_con_embed(request, proyecto_id):
                 "id": dash['id'],
                 "nombre_dashboard": dash['nombre_dashboard'],
                 "report_id": report_id,
-                "workspace_id": workspace_id,  # 🔹 también lo devuelve al frontend
+                "workspace_id": workspace_id,
                 "embed_url": embed_url,
                 "embed_token": embed_token
             })
@@ -239,3 +258,35 @@ def dashboards_con_embed(request, proyecto_id):
 
     except Exception as e:
         return Response({"error": f"Excepción en servidor: {str(e)}"}, status=500)
+
+
+@api_view(['GET'])
+def dashboards_por_usuario_y_proyecto(request, proyecto_id):
+    usuario_id = request.query_params.get('usuario_id')
+
+    if not usuario_id:
+        return Response(
+            {"error": "Debe enviar el usuario_id"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        dashboards_ids = UsuarioDashboard.objects.filter(
+            usuario_id=usuario_id,
+            proyecto_id=proyecto_id
+        ).values_list('dashboard_id', flat=True)
+
+        dashboards = Dashboard.objects.filter(id__in=dashboards_ids, estado=True)
+
+        if not dashboards.exists():
+            return Response(
+                {"error": "No hay dashboards activos para este usuario en este proyecto."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = DashboardSerializer(dashboards, many=True)
+        return Response({"dashboards": serializer.data}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("Error en dashboards_por_usuario_y_proyecto:", e)
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
