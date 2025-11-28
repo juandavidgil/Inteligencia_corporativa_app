@@ -76,7 +76,7 @@ const DashBoard: React.FC = () => {
 
   // NAVEGAR AL TABLERO
   const irTablero = (dashboard: DashboardItem) => {
-    navigation.navigate("Tablero", {
+    navigation.navigate("Tableros", {
       proyectoId,
       dashboardId: dashboard.id,
       nombreDashboard: dashboard.nombre_dashboard,
@@ -146,13 +146,13 @@ export default DashBoard;
 const styles = StyleSheet.create({
   contenedor: {
     flex: 1,
-    backgroundColor: "#0d0d0d",
+    backgroundColor: "#e9e9e9ff",
     paddingTop: 40,
     alignItems: "center",
   },
   cargando: {
     flex: 1,
-    backgroundColor: "#0d0d0d",
+    backgroundColor: "#ffffffff",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -162,12 +162,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   titulo: {
-    color: "white",
+    color: "black",
     fontSize: 26,
     fontWeight: "700",
   },
   subtitulo: {
-    color: "#bbb",
+    color: "#464646ff",
     fontSize: 14,
     marginBottom: 20,
   },
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   },
   tarjeta: {
     width: 260,
-    backgroundColor: "#1b1b1b",
+    backgroundColor: "#ffffffff",
     padding: 18,
     borderRadius: 12,
     alignItems: "center",
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   },
   nombre: {
     marginTop: 10,
-    color: "white",
+    color: "black",
     fontSize: 18,
     fontWeight: "600",
     textAlign: "center",

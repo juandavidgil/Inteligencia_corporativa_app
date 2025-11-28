@@ -3,6 +3,7 @@ import { RouteProp, useRoute } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
+import { URL } from "../config/URL";
 
 type RootStackParamList = {
   Tableros: {
@@ -35,7 +36,7 @@ export default function Tableros() {
         }
 
         const response = await fetch(
-          `https://TU_BACKEND/dashboards_con_embed/${proyectoId}/?usuario_id=${usuario.id}`
+          `${URL}/dashboards_con_embed/${proyectoId}/?usuario_id=${usuario.id}`
         );
 
         const data = await response.json();
@@ -62,7 +63,6 @@ export default function Tableros() {
 
     if (proyectoId && dashboardId) fetchDashboard();
   }, [proyectoId, dashboardId]);
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
@@ -73,13 +73,66 @@ export default function Tableros() {
       {error && <Text style={styles.error}>{error}</Text>}
 
       {currentDashboard?.embed_url && (
-        <WebView
-          source={{ uri: currentDashboard.embed_url }}
-          style={styles.webview}
-          javaScriptEnabled
-          domStorageEnabled
-          startInLoadingState
-        />
+        
+    <WebView
+  originWhitelist={['*']}
+  javaScriptEnabled
+  domStorageEnabled
+  style={{ flex: 1 }}
+  source={{
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.jsdelivr.net/npm/powerbi-client/dist/powerbi.min.js"></script>
+        <style>
+          html, body, #reportContainer {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: transparent;
+          }
+        </style>
+      </head>
+      <body>
+        <div id="reportContainer"></div>
+        <script>
+          const models = window['powerbi-client'].models;
+
+          const embedConfig = {
+            type: "report",
+            tokenType: models.TokenType.Embed,
+            accessToken: "${currentDashboard?.embed_token}",
+            embedUrl: "${currentDashboard?.embed_url}",
+            permissions: models.Permissions.All,
+            settings: {
+              panes: {
+                filters: { visible: false },
+                pageNavigation: { visible: true },
+              },
+              background: models.BackgroundType.Transparent,
+            }
+          };
+
+          const reportContainer = document.getElementById("reportContainer");
+          const powerbi = new window['powerbi-client'].service.Service(
+            window['powerbi-client'].factories.hpmFactory,
+            window['powerbi-client'].factories.wpmpFactory,
+            window['powerbi-client'].factories.routerFactory
+          );
+          powerbi.embed(reportContainer, embedConfig);
+        </script>
+      </body>
+      </html>
+    `
+  }}
+/>
+
+
+
+
       )}
     </View>
   );
@@ -88,14 +141,15 @@ export default function Tableros() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1E1E1E",
+    backgroundColor: "#e9e9e9ff",
     padding: 16,
   },
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "white",
-    marginBottom: 16,
+    color: "black",
+    marginTop: '5%',
+    marginBottom: '5%',
   },
   error: {
     color: "red",

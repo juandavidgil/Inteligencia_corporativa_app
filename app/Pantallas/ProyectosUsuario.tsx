@@ -88,7 +88,7 @@ const ProyectosUsuario: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.cuerpo}>
-        <ActivityIndicator size="large" color="#FFF" />
+        <ActivityIndicator size="large" color="#000000ff" />
         <Text style={styles.titulo}>Cargando tus módulos...</Text>
       </View>
     );
@@ -112,7 +112,7 @@ const ProyectosUsuario: React.FC = () => {
                 key={proyecto.id}
                 style={styles.tarjeta}
                 onPress={() =>
-                  navigation.navigate("Dashboard", { id: proyecto.id })
+                  navigation.navigate("Dashboards", { id: proyecto.id })
                 }
               >
                 <Image source={imagen} style={styles.imagenTarjeta} />
@@ -137,18 +137,18 @@ export default ProyectosUsuario;
 const styles = StyleSheet.create({
   cuerpo: {
     flex: 1,
-    backgroundColor: "#0d0d0d",
+    backgroundColor: "#e9e9e9ff",
     alignItems: "center",
     paddingTop: 40,
   },
   titulo: {
-    color: "white",
+    color: "black",
     fontSize: 26,
     fontWeight: "bold",
     marginBottom: 5,
   },
   subtitulo: {
-    color: "#bbb",
+    color: "#464646ff",
     fontSize: 14,
     marginBottom: 20,
   },
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   },
   tarjeta: {
     width: 250,
-    backgroundColor: "#1b1b1b",
+    backgroundColor: "#ffffffff",
     borderRadius: 12,
     padding: 15,
     marginBottom: 20,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   nombre: {
-    color: "white",
+    color: "black",
     fontSize: 18,
     marginTop: 10,
     fontWeight: "600",

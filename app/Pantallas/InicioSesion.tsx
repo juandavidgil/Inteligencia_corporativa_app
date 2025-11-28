@@ -3,6 +3,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   StyleSheet,
   Text,
   TextInput,
@@ -29,7 +30,7 @@ const InicioDeSesion: React.FC = () => {
     limpiar();
   }, [route.key]);
 
-  // Ir al admin Django (solo abre navegador)
+
   const Administrar = () => {
    /*  Alert.alert(
       "Abrir Admin",
@@ -40,12 +41,12 @@ const InicioDeSesion: React.FC = () => {
           onPress: () =>
             Linking.openURL("http://127.0.0.1:8000/admin/")
         },
-        { text: "Cancelar", style: "cancel" }
+        { text: "Cancelar", style: "cancel" }erroe a
       ]
     ); */
   };
 
-  // LOGIN
+
   const Ingresar = async () => {
     try {
       const response = await fetch(`${URL}/login/`, {
@@ -62,7 +63,6 @@ const InicioDeSesion: React.FC = () => {
 
 
         await precargarDatos(data.usuario.id);
-
         Alert.alert("Bienvenido", data.usuario.nombre);
         navigation.navigate("ProyectosUsuario");
       } else {
@@ -70,7 +70,8 @@ const InicioDeSesion: React.FC = () => {
       }
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
-      Alert.alert("Error", "No se pudo conectar con el servidor");
+      Alert.alert("Error", "No se pudo conectar con el servidor por queee");
+      console.log("url: ",URL)
     }
   };
 
@@ -114,6 +115,12 @@ const precargarDatos = async (usuarioId: number) => {
   return (
     <View style={styles.contenedor}>
       <View style={styles.card}>
+      
+      <Image 
+        source={require('../../assets/img/dataTools.jpg')}
+        style={styles.img}
+      />
+
         <Text style={styles.titulo}>Inteligencia Corporativa</Text>
 
         <Text style={styles.label}>Correo electrónico</Text>
@@ -154,7 +161,7 @@ export default InicioDeSesion;
 const styles = StyleSheet.create({
   contenedor: {
     flex: 1,
-    backgroundColor: "#ffffffff",
+    backgroundColor: "#e9e9e9ff",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
@@ -165,6 +172,9 @@ const styles = StyleSheet.create({
     padding: 25,
     borderRadius: 15,
   },
+  img:{
+    
+  },
   titulo: {
     color: "black",
     fontSize: 24,
@@ -173,12 +183,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    color: "white",
-    marginBottom: 0,
+    color: "black",
+    marginBottom: 5,
     fontSize: 15,
   },
   input: {
-    backgroundColor: "#cfcfcfff",
+    backgroundColor: "#ccccccff",
     padding: 12,
     borderRadius: 10,
     color: "white",

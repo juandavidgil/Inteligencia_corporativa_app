@@ -15,3 +15,6 @@ export type StackParamList = {
 }
 
 export type InicioSesionScreenNavigationProp = RouteProp<StackParamList, 'InicioSesion'>;
+export type ProyectoUsuarioScreenNavigationProp = RouteProp<StackParamList, 'ProyectosUsuario'>;
+export type DashboardsScreenNavigationProp = RouteProp<StackParamList, 'Dashboards'>;
+export type TablerosScreenNavigationProp = RouteProp<StackParamList, 'Tableros'>;
