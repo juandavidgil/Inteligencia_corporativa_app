@@ -8,7 +8,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { URL } from "../config/URL";
 
@@ -19,114 +19,170 @@ const InicioDeSesion: React.FC = () => {
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
 
- 
+
+  const validarCorreo = (correo: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(correo);
+  };
+
+
   useEffect(() => {
     const limpiar = async () => {
       await AsyncStorage.clear();
       setCorreo("");
       setPassword("");
     };
-
     limpiar();
   }, [route.key]);
 
-
-  const Administrar = () => {
-   /*  Alert.alert(
-      "Abrir Admin",
-      "Esto abrirá el administrador en el navegador.",
-      [
-        {
-          text: "Abrir",
-          onPress: () =>
-            Linking.openURL("http://127.0.0.1:8000/admin/")
-        },
-        { text: "Cancelar", style: "cancel" }erroe a
-      ]
-    ); */
-  };
-
-
+  
   const Ingresar = async () => {
+    if (!correo.trim()) {
+      Alert.alert("Error", "El correo es obligatorio.");
+      return;
+    }
+
+    if (!validarCorreo(correo)) {
+      Alert.alert(
+        "Error",
+        "Ingrese un correo válido (ejemplo: usuario@datatools.com.co)"
+      );
+      return;
+    }
+
+    if (!password.trim()) {
+      Alert.alert("Error", "La contraseña es obligatoria.");
+      return;
+    }
+
     try {
       const response = await fetch(`${URL}/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, password }),
       });
-      console.log("iniciando sesion...")
+
       const data = await response.json();
 
       if (response.ok) {
-        await AsyncStorage.setItem("usuario", JSON.stringify(data.usuario));
-        await AsyncStorage.setItem("powerbi_token", data.powerbi_token);
-
+        await AsyncStorage.setItem(
+          "usuario",
+          JSON.stringify(data.usuario)
+        );
+        await AsyncStorage.setItem(
+          "powerbi_token",
+          data.powerbi_token
+        );
 
         await precargarDatos(data.usuario.id);
-        Alert.alert("Bienvenido", data.usuario.nombre);
-        navigation.navigate("ProyectosUsuario");
+
+        Alert.alert(
+          "Bienvenido",
+          data.usuario.nombre,
+          [
+            {
+              text: "Continuar",
+              onPress: () =>
+                navigation.navigate("ProyectosUsuario"),
+            },
+          ],
+          { cancelable: false }
+        );
       } else {
-        Alert.alert("Error", data.error || "Credenciales incorrectas");
+        Alert.alert("Error", "Credenciales incorrectas");
       }
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
-      Alert.alert("Error", "No se pudo conectar con el servidor por queee");
-      console.log("url: ",URL)
+      Alert.alert(
+        "Error",
+        "Error al conectar con el servidor"
+      );
     }
   };
 
  
-const precargarDatos = async (usuarioId: number) => {
-  try {
-
-    const resProyectos = await fetch(`${URL}/proyectos_usuario/${usuarioId}/`);
-    const proyectos = await resProyectos.json();
-
-    if (!resProyectos.ok) {
-      console.warn("No se pudieron cargar los proyectos");
-      return;
-    }
-
-
-    await AsyncStorage.setItem("proyectos_usuario", JSON.stringify(proyectos));
-
-
-    for (const proyecto of proyectos) {
-      const resDash = await fetch(
-        `${URL}/dashboards_con_embed/${proyecto.id}/?usuario_id=${usuarioId}`
+  const precargarDatos = async (usuarioId: number) => {
+    try {
+      const proyectosRes = await fetch(
+        `${URL}/proyectos_usuario/${usuarioId}/`
       );
-      const dashData = await resDash.json();
+      const proyectos = await proyectosRes.json();
 
-      if (resDash.ok && dashData.dashboards) {
-        await AsyncStorage.setItem(
-          `dashboards_${proyecto.id}`,
-          JSON.stringify(dashData.dashboards)
-        );
-      }
+      if (!proyectosRes.ok) return;
+
+      await AsyncStorage.setItem(
+        "proyectos_usuario",
+        JSON.stringify(proyectos)
+      );
+
+   for (const proyecto of proyectos) {
+  const tiposRes = await fetch(
+    `${URL}/tipos_dashboards/${proyecto.id}/?usuario_id=${usuarioId}`
+  );
+
+  const tiposData = await tiposRes.json();
+/* 
+  console.log(
+    "Tipos dashboards - Proyecto:",
+    proyecto.id,
+    "Respuesta completa:",
+    tiposData
+  );
+ */
+  const tipos = tiposData.tipos || [];
+
+/*   console.log(
+    "Tipos procesados - Proyecto:",
+    proyecto.id,
+    tipos
+  ); */
+
+  await AsyncStorage.setItem(
+    `tipos_${proyecto.id}`,
+    JSON.stringify(tipos)
+  );
+
+  for (const tipo of tipos) {
+    const dashboardsRes = await fetch(
+      `${URL}/dashboards_con_embed/${proyecto.id}/?usuario_id=${usuarioId}&tipo=${tipo}`
+    );
+    const dashboardsData = await dashboardsRes.json();
+
+    if (dashboardsRes.ok) {
+      await AsyncStorage.setItem(
+        `dashboards_${proyecto.id}_${tipo}`,
+        JSON.stringify(dashboardsData.dashboards || [])
+      );
     }
-
-    console.log("Datos precargados correctamente");
-  } catch (err) {
-    console.warn("Error precargando proyectos o dashboards:", err);
   }
-};
+}
 
+    } catch (error) {
+      console.warn(
+        "Error precargando proyectos/tipos/dashboards:",
+        error
+      );
+    }
+  };
 
   return (
     <View style={styles.contenedor}>
       <View style={styles.card}>
-      
-      <Image 
-        source={require('../../assets/img/dataTools.jpg')}
-        style={styles.img}
-      />
+        <Image
+          source={require("../../assets/img/datatools.jpg")}
+          style={styles.img}
+        />
 
-        <Text style={styles.titulo}>Inteligencia Corporativa</Text>
+        <Text style={styles.titulo}>
+          Inteligencia Corporativa
+        </Text>
 
-        <Text style={styles.label}>Correo electrónico</Text>
+        <Text style={styles.label}>
+          Correo electrónico
+        </Text>
         <TextInput
           style={styles.input}
-          placeholder="Ingrese su correo"
+          placeholder="Ingrese su correo electrónico"
           value={correo}
           onChangeText={setCorreo}
           keyboardType="email-address"
@@ -142,21 +198,22 @@ const precargarDatos = async (usuarioId: number) => {
           secureTextEntry
         />
 
-        <TouchableOpacity style={styles.boton} onPress={Ingresar}>
-          <Text style={styles.botonTexto}>Ingresar</Text>
+        <TouchableOpacity
+          style={styles.boton}
+          onPress={Ingresar}
+        >
+          <Text style={styles.botonTexto}>
+            Ingresar
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.botonAdmin} onPress={Administrar}>
-          <Text style={styles.botonTexto}>Administrar</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.slogan}>"Producto No Para"</Text>
+        <Text style={styles.slogan}>
+          "Producto No Para"
+        </Text>
       </View>
     </View>
   );
 };
-
-export default InicioDeSesion;
 
 const styles = StyleSheet.create({
   contenedor: {
@@ -168,12 +225,16 @@ const styles = StyleSheet.create({
   },
   card: {
     width: "100%",
-    backgroundColor: "#ffffffff",
+    backgroundColor: "#fff",
     padding: 25,
     borderRadius: 15,
+    elevation: 5,
   },
-  img:{
-    
+  img: {
+    width: "100%",
+    height: 120,
+    resizeMode: "contain",
+    marginBottom: 10,
   },
   titulo: {
     color: "black",
@@ -191,20 +252,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccccccff",
     padding: 12,
     borderRadius: 10,
-    color: "white",
-    marginBottom: 5,
+    marginBottom: 10,
   },
   boton: {
     backgroundColor: "#2563eb",
     padding: 12,
     borderRadius: 10,
-    marginTop: 50,
-  },
-  botonAdmin: {
-    backgroundColor: "#1088a7ff",
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 10,
+    marginTop: 30,
   },
   botonTexto: {
     color: "white",
@@ -213,9 +267,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   slogan: {
-    color: "#000000ff",
+    color: "#000",
     marginTop: 20,
     textAlign: "center",
     fontStyle: "italic",
   },
 });
+
+export default InicioDeSesion;

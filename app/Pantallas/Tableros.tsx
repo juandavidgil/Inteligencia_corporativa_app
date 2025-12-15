@@ -89,7 +89,7 @@ export default function Tableros() {
         <style>
           html, body, #reportContainer {
             width: 100%;
-            height: 100%;
+            height: 100vh;
             margin: 0;
             padding: 0;
             background-color: transparent;
@@ -98,32 +98,35 @@ export default function Tableros() {
       </head>
       <body>
         <div id="reportContainer"></div>
-        <script>
-          const models = window['powerbi-client'].models;
+       <script>
+  const models = window['powerbi-client'].models;
 
-          const embedConfig = {
-            type: "report",
-            tokenType: models.TokenType.Embed,
-            accessToken: "${currentDashboard?.embed_token}",
-            embedUrl: "${currentDashboard?.embed_url}",
-            permissions: models.Permissions.All,
-            settings: {
-              panes: {
-                filters: { visible: false },
-                pageNavigation: { visible: true },
-              },
-              background: models.BackgroundType.Transparent,
-            }
-          };
+  const embedConfig = {
+    type: "report",
+    tokenType: models.TokenType.Embed,
+    accessToken: "${currentDashboard?.embed_token}",
+    embedUrl: "${currentDashboard?.embed_url}",
+    permissions: models.Permissions.All,
+    settings: {
+      layoutType: models.LayoutType.MobilePortrait,
+      panes: {
+        filters: { visible: false },
+        pageNavigation: { visible: false }
+      },
+      background: models.BackgroundType.Transparent
+    }
+  };
 
-          const reportContainer = document.getElementById("reportContainer");
-          const powerbi = new window['powerbi-client'].service.Service(
-            window['powerbi-client'].factories.hpmFactory,
-            window['powerbi-client'].factories.wpmpFactory,
-            window['powerbi-client'].factories.routerFactory
-          );
-          powerbi.embed(reportContainer, embedConfig);
-        </script>
+  const reportContainer = document.getElementById("reportContainer");
+  const powerbi = new window['powerbi-client'].service.Service(
+    window['powerbi-client'].factories.hpmFactory,
+    window['powerbi-client'].factories.wpmpFactory,
+    window['powerbi-client'].factories.routerFactory
+  );
+
+  powerbi.embed(reportContainer, embedConfig);
+</script>
+
       </body>
       </html>
     `

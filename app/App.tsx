@@ -3,6 +3,7 @@ import DashBoard from './Pantallas/DashBoards';
 import InicioSesion from "./Pantallas/InicioSesion";
 import ProyectosUsuario from "./Pantallas/ProyectosUsuario";
 import Tableros from './Pantallas/Tableros';
+import TiposDashboards from "./Pantallas/TiposDashboards";
 import { StackParamList } from './types/types';
 
 
@@ -13,6 +14,7 @@ const Stack = createNativeStackNavigator<StackParamList>();
     <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
         <Stack.Screen name="InicioSesion" component={InicioSesion} />
         <Stack.Screen name="ProyectosUsuario" component={ProyectosUsuario} />
+        <Stack.Screen name="Tipos" component={TiposDashboards}/>
         <Stack.Screen name="Dashboards" component={DashBoard} />
         <Stack.Screen name="Tableros" component={Tableros} />
     </Stack.Navigator>

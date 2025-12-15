@@ -10,14 +10,14 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import Neiva from "../../assets/img//Neiva.jpg";
-import ATM from "../../assets/img/ATM.png";
-import Cartagena from "../../assets/img/Cartagena.png";
-import Chia from "../../assets/img/Chia.png";
-import MOVIDIC from "../../assets/img/MOVIDIC.png";
-import Silvania from "../../assets/img/Silvania.jpg";
-import VUS from "../../assets/img/VUS.png";
-import Data from "../../assets/img/dataTools.jpg";
+import Neiva from "../../assets/img//neiva.jpg";
+import ATM from "../../assets/img/atm.png";
+import Cartagena from "../../assets/img/cartagena.png";
+import Chia from "../../assets/img/chia.png";
+import MOVIDIC from "../../assets/img/movidic.png";
+import Silvania from "../../assets/img/silvania.jpg";
+import VUS from "../../assets/img/vus.png";
+import Data from "../../assets/img/datatools.jpg";
 import { URL } from "../config/URL";
 
 interface Proyecto {
@@ -111,9 +111,9 @@ const ProyectosUsuario: React.FC = () => {
               <TouchableOpacity
                 key={proyecto.id}
                 style={styles.tarjeta}
-                onPress={() =>
-                  navigation.navigate("Dashboards", { id: proyecto.id })
-                }
+                 onPress={() => {
+                  navigation.navigate("Tipos", { proyectoId: proyecto.id });
+                }}
               >
                 <Image source={imagen} style={styles.imagenTarjeta} />
                 <Text style={styles.nombre}>{proyecto.nombre_proyecto}</Text>
