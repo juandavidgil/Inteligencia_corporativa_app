@@ -3,30 +3,90 @@ import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
+  Dimensions,
   Image,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  useColorScheme,
+  View,
 } from "react-native";
-import Neiva from "../../assets/img//neiva.jpg";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import ATM from "../../assets/img/atm.png";
 import Cartagena from "../../assets/img/cartagena.png";
 import Chia from "../../assets/img/chia.png";
+import Data from "../../assets/img/datatools.jpg";
 import MOVIDIC from "../../assets/img/movidic.png";
+import Neiva from "../../assets/img/neiva.jpg";
 import Silvania from "../../assets/img/silvania.jpg";
 import VUS from "../../assets/img/vus.png";
-import Data from "../../assets/img/datatools.jpg";
 import { URL } from "../config/URL";
+
 
 interface Proyecto {
   id: number;
   nombre_proyecto: string;
 }
 
+const { width } = Dimensions.get("window");
+const CARD_WIDTH = Math.min(width - 40, 300);
+
+
+const TarjetaProyecto = ({
+  proyecto,
+  imagen,
+  onPress,
+}: {
+  proyecto: Proyecto;
+  imagen: any;
+  onPress: () => void;
+}) => {
+  const scaleAnim = useState(new Animated.Value(1))[0];
+
+  const pressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const pressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 6,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPressIn={pressIn}
+        onPressOut={pressOut}
+        onPress={onPress}
+        style={styles.tarjeta}
+      >
+        <Image source={imagen} style={styles.imagenTarjeta} />
+        <Text style={styles.nombre}>
+          {proyecto.nombre_proyecto}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+
 const ProyectosUsuario: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const scheme = useColorScheme();
+  const dark = scheme === "dark";
+
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,17 +105,11 @@ const ProyectosUsuario: React.FC = () => {
     try {
       const usuarioString = await AsyncStorage.getItem("usuario");
       const usuario = usuarioString ? JSON.parse(usuarioString) : null;
-
-      if (!usuario?.id) {
-        console.warn("No se encontró el usuario en AsyncStorage");
-        setLoading(false);
-        return;
-      }
+      if (!usuario?.id) return;
 
       const cache = await AsyncStorage.getItem("proyectos_usuario");
       if (cache) {
         setProyectos(JSON.parse(cache));
-        setLoading(false);
         return;
       }
 
@@ -64,21 +118,21 @@ const ProyectosUsuario: React.FC = () => {
 
       if (response.ok) {
         setProyectos(data);
-        await AsyncStorage.setItem("proyectos_usuario", JSON.stringify(data));
-      } else {
-        console.error("Error al obtener proyectos:", data);
+        await AsyncStorage.setItem(
+          "proyectos_usuario",
+          JSON.stringify(data)
+        );
       }
-    } catch (err) {
-      console.error("Error de conexión:", err);
+    } catch (error) {
+      console.error("Error cargando proyectos:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const CerrarSesion = async () => {
-    await AsyncStorage.removeItem("usuario");
-    await AsyncStorage.removeItem("proyectos_usuario");
-    navigation.navigate("Login");
+    await AsyncStorage.clear();
+    navigation.navigate("InicioSesion");
   };
 
   useEffect(() => {
@@ -87,106 +141,203 @@ const ProyectosUsuario: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={styles.cuerpo}>
-        <ActivityIndicator size="large" color="#000000ff" />
-        <Text style={styles.titulo}>Cargando tus módulos...</Text>
-      </View>
+      <SafeAreaView
+        style={[
+          styles.safe,
+          {
+            paddingTop: insets.top,
+            backgroundColor: dark ? "#0d0f1aff" : "#f1f5f9",
+          },
+        ]}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2563eb" />
+          <Text
+            style={[
+              styles.loadingText,
+              { color: dark ? "#cbd5f5" : "#334155" },
+            ]}
+          >
+            Cargando tus módulos...
+          </Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.cuerpo}>
-      <Text style={styles.titulo}>MÓDULOS</Text>
-      <Text style={styles.subtitulo}>
-        Aquí puedes ver los módulos en los que estás participando.
-      </Text>
+    <SafeAreaView
+      style={[
+        styles.safe,
+        {
+          paddingTop: insets.top,
+          backgroundColor: dark ? "#0d0f1aff" : "#f1f5f9",
+        },
+      ]}
+    >
+      <View style={styles.cuerpo}>
+        <Text
+          style={[
+            styles.titulo,
+            { color: dark ? "#f8fafc" : "#020617" },
+          ]}
+        >
+          MÓDULOS
+        </Text>
 
-      <ScrollView contentContainerStyle={styles.contenedorTarjetas}>
-        {proyectos.length > 0 ? (
-          proyectos.map((proyecto) => {
-            const imagen =
-              imagenesProyectos[proyecto.nombre_proyecto] || Data;
+        <Text
+          style={[
+            styles.subtitulo,
+            { color: dark ? "#94a3b8" : "#475569" },
+          ]}
+        >
+          Aquí puedes ver los módulos en los que estás participando
+        </Text>
 
-            return (
-              <TouchableOpacity
-                key={proyecto.id}
-                style={styles.tarjeta}
-                 onPress={() => {
-                  navigation.navigate("Tipos", { proyectoId: proyecto.id });
-                }}
-              >
-                <Image source={imagen} style={styles.imagenTarjeta} />
-                <Text style={styles.nombre}>{proyecto.nombre_proyecto}</Text>
-              </TouchableOpacity>
-            );
-          })
-        ) : (
-          <Text style={{ color: "white" }}>No tienes módulos asignados.</Text>
-        )}
-      </ScrollView>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            alignItems: "center",
+            paddingBottom: insets.bottom + 100,
+          }}
+        >
+          {proyectos.length > 0 ? (
+            proyectos.map((proyecto) => {
+              const imagen =
+                imagenesProyectos[proyecto.nombre_proyecto] || Data;
 
-      <TouchableOpacity style={styles.botonCerrar} onPress={CerrarSesion}>
-        <Text style={styles.textoCerrar}>Cerrar Sesión</Text>
-      </TouchableOpacity>
-    </View>
+              return (
+                <TarjetaProyecto
+                  key={proyecto.id}
+                  proyecto={proyecto}
+                  imagen={imagen}
+                  onPress={() =>
+                    navigation.navigate("Tipos", {
+                      proyectoId: proyecto.id,
+                    })
+                  }
+                />
+              );
+            })
+          ) : (
+            <Text
+              style={[
+                styles.vacio,
+                { color: dark ? "#94a3b8" : "#64748b" },
+              ]}
+            >
+              No tienes módulos asignados.
+            </Text>
+          )}
+        </ScrollView>
+
+        <View
+          style={[
+            styles.footerSafe,
+            { paddingBottom: insets.bottom + 12 },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.botonCerrar}
+            onPress={CerrarSesion}
+          >
+            <Text style={styles.textoCerrar}>
+              Cerrar sesión
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
 export default ProyectosUsuario;
 
+
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+  },
+
   cuerpo: {
     flex: 1,
-    backgroundColor: "#e9e9e9ff",
     alignItems: "center",
-    paddingTop: 40,
   },
+
   titulo: {
-    color: "black",
     fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 5,
+    fontWeight: "800",
+    marginTop: 10,
   },
+
   subtitulo: {
-    color: "#464646ff",
     fontSize: 14,
+    marginTop: 6,
     marginBottom: 20,
+    paddingHorizontal: 30,
+    textAlign: "center",
   },
-  contenedorTarjetas: {
-    paddingBottom: 80,
-    alignItems: "center",
-  },
+
   tarjeta: {
-    width: 250,
-    backgroundColor: "#ffffffff",
-    borderRadius: 12,
+    width: CARD_WIDTH,
+    backgroundColor: "#ffffff",
+    height: 200,
+    borderRadius: 14,
     padding: 15,
-    marginBottom: 20,
+    marginBottom: 22,
     alignItems: "center",
-    elevation: 6,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
   },
+
   imagenTarjeta: {
-    width: 180,
+    width: "60%",
     height: 120,
     borderRadius: 10,
+    resizeMode: "cover",
   },
+
   nombre: {
-    color: "black",
+    marginTop: 12,
     fontSize: 18,
-    marginTop: 10,
-    fontWeight: "600",
+    fontWeight: "700",
+    color: "#020617",
   },
+
+  footerSafe: {
+    paddingTop: 10,
+  },
+
   botonCerrar: {
-    position: "absolute",
-    bottom: 20,
-    backgroundColor: "#b91c1c",
+    backgroundColor: "#ef4444",
     paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 10,
+    paddingHorizontal: 40,
+    borderRadius: 25,
+    elevation: 4,
   },
+
   textoCerrar: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  loadingText: {
+    marginTop: 15,
+    fontSize: 15,
+  },
+
+  vacio: {
+    marginTop: 40,
+    fontSize: 15,
   },
 });

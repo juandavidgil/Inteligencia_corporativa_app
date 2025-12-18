@@ -1,7 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
 import { URL } from "../config/URL";
 
@@ -15,7 +23,11 @@ type RootStackParamList = {
 
 type TablerosRouteProp = RouteProp<RootStackParamList, "Tableros">;
 
-export default function Tableros() {
+const Tableros: React.FC = () => {
+  const insets = useSafeAreaInsets();
+  const scheme = useColorScheme();
+  const dark = scheme === "dark";
+
   const route = useRoute<TablerosRouteProp>();
   const { proyectoId, dashboardId, nombreDashboard } = route.params;
 
@@ -31,7 +43,6 @@ export default function Tableros() {
 
         if (!usuario?.id) {
           setError("No se encontró información del usuario.");
-          setLoading(false);
           return;
         }
 
@@ -45,6 +56,7 @@ export default function Tableros() {
           const dashboardEncontrado = data.dashboards.find(
             (d: any) => d.id === dashboardId
           );
+
           if (dashboardEncontrado) {
             setCurrentDashboard(dashboardEncontrado);
           } else {
@@ -61,109 +73,178 @@ export default function Tableros() {
       }
     };
 
-    if (proyectoId && dashboardId) fetchDashboard();
-  }, [proyectoId, dashboardId]);
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
-        {nombreDashboard || currentDashboard?.nombre_dashboard || "Dashboard"}
-      </Text>
-
-      {loading && <ActivityIndicator size="large" color="#007AFF" />}
-      {error && <Text style={styles.error}>{error}</Text>}
-
-      {currentDashboard?.embed_url && (
-        
-    <WebView
-  originWhitelist={['*']}
-  javaScriptEnabled
-  domStorageEnabled
-  style={{ flex: 1 }}
-  source={{
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="https://cdn.jsdelivr.net/npm/powerbi-client/dist/powerbi.min.js"></script>
-        <style>
-          html, body, #reportContainer {
-            width: 100%;
-            height: 100vh;
-            margin: 0;
-            padding: 0;
-            background-color: transparent;
-          }
-        </style>
-      </head>
-      <body>
-        <div id="reportContainer"></div>
-       <script>
-  const models = window['powerbi-client'].models;
-
-  const embedConfig = {
-    type: "report",
-    tokenType: models.TokenType.Embed,
-    accessToken: "${currentDashboard?.embed_token}",
-    embedUrl: "${currentDashboard?.embed_url}",
-    permissions: models.Permissions.All,
-    settings: {
-      layoutType: models.LayoutType.MobilePortrait,
-      panes: {
-        filters: { visible: false },
-        pageNavigation: { visible: false }
-      },
-      background: models.BackgroundType.Transparent
+    if (proyectoId && dashboardId) {
+      fetchDashboard();
     }
-  };
+  }, [proyectoId, dashboardId]);
 
-  const reportContainer = document.getElementById("reportContainer");
-  const powerbi = new window['powerbi-client'].service.Service(
-    window['powerbi-client'].factories.hpmFactory,
-    window['powerbi-client'].factories.wpmpFactory,
-    window['powerbi-client'].factories.routerFactory
+  return (
+    <SafeAreaView
+      style={[
+        styles.safe,
+        { 
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          backgroundColor: dark ? "#020617" : "#f1f5f9",
+        },
+      ]}
+    >
+      <View style={styles.container}>
+        <Text
+          style={[
+            styles.title,
+            { color: dark ? "#f8fafc" : "#0f172a" },
+          ]}
+        >
+          {nombreDashboard ||
+            currentDashboard?.nombre_dashboard ||
+            "Dashboard"}
+        </Text>
+
+        {loading && (
+          <View style={styles.center}>
+            <ActivityIndicator size="large" color="#60a5fa" />
+            <Text
+              style={[
+                styles.loadingText,
+                { color: dark ? "#cbd5f5" : "#334155" },
+              ]}
+            >
+              Cargando dashboard...
+            </Text>
+          </View>
+        )}
+
+        {error !== "" && !loading && (
+          <View style={styles.center}>
+            <Text style={styles.error}>{error}</Text>
+          </View>
+        )}
+
+        {!loading && currentDashboard?.embed_url && (
+          <View
+            style={[
+              styles.webviewContainer,
+              {
+                backgroundColor: "#ffffff",
+                shadowColor: dark ? "#000" : "#475569",
+              },
+            ]}
+          >
+            <WebView
+              originWhitelist={["*"]}
+              javaScriptEnabled
+              domStorageEnabled
+              style={styles.webview}
+              source={{
+                html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/powerbi-client/dist/powerbi.min.js"></script>
+  <style>
+    html, body, #reportContainer {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div id="reportContainer"></div>
+
+  <script>
+    const models = window['powerbi-client'].models;
+
+    const embedConfig = {
+      type: "report",
+      tokenType: models.TokenType.Embed,
+      accessToken: "${currentDashboard.embed_token}",
+      embedUrl: "${currentDashboard.embed_url}",
+      permissions: models.Permissions.All,
+      settings: {
+        layoutType: models.LayoutType.MobilePortrait,
+        panes: {
+          filters: { visible: false },
+          pageNavigation: { visible: false }
+        },
+        background: models.BackgroundType.Transparent
+      }
+    };
+
+    const reportContainer = document.getElementById("reportContainer");
+    const powerbi = new window['powerbi-client'].service.Service(
+      window['powerbi-client'].factories.hpmFactory,
+      window['powerbi-client'].factories.wpmpFactory,
+      window['powerbi-client'].factories.routerFactory
+    );
+
+    powerbi.embed(reportContainer, embedConfig);
+  </script>
+</body>
+</html>
+                `,
+              }}
+            />
+          </View>
+        )}
+      </View>
+    </SafeAreaView>
   );
+};
 
-  powerbi.embed(reportContainer, embedConfig);
-</script>
-
-      </body>
-      </html>
-    `
-  }}
-/>
-
-
-
-
-      )}
-    </View>
-  );
-}
+export default Tableros;
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+  },
+
   container: {
     flex: 1,
-    backgroundColor: "#e9e9e9ff",
-    padding: 16,
+    paddingHorizontal: 16,
   },
+
   title: {
     fontSize: 22,
-    fontWeight: "bold",
-    color: "black",
-    marginTop: '5%',
-    marginBottom: '5%',
+    fontWeight: "800",
+    textAlign: "center",
+    marginVertical: 12,
   },
+
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  loadingText: {
+    marginTop: 12,
+    fontSize: 15,
+  },
+
   error: {
-    color: "red",
+    color: "#ef4444",
     fontSize: 16,
-    marginVertical: 10,
+    textAlign: "center",
+    paddingHorizontal: 20,
   },
-  webview: {
-    height: Dimensions.get("window").height - 150,
-    width: "100%",
-    backgroundColor: "white",
-    borderRadius: 10,
+
+  webviewContainer: {
+    flex: 1,
+    borderRadius: 14,
     overflow: "hidden",
+    elevation: 1,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
+
+  webview: {
+    flex: 1,
+    backgroundColor: "transparent",
   },
 });

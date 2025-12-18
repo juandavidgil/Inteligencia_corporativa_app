@@ -3,13 +3,18 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
+  Dimensions,
   Image,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { URL } from "../config/URL";
 
 
@@ -21,8 +26,9 @@ import financiero from "../../assets/img/financiero.png";
 import indicadores from "../../assets/img/indicadores.png";
 import multa from "../../assets/img/multa.png";
 import operativo from "../../assets/img/operativo.png";
-import recaudo from "../../assets/img/recaudo.png";
 import predictivo from "../../assets/img/predictivo.png";
+import recaudo from "../../assets/img/recaudo.png";
+
 
 interface DashboardItem {
   id: number;
@@ -35,9 +41,62 @@ interface RouteParams {
   tipo: string;
 }
 
+const { width } = Dimensions.get("window");
+const CARD_WIDTH = Math.min(width - 40, 300);
+
+
+const TarjetaDashboard = ({
+  dashboard,
+  icono,
+  onPress,
+}: {
+  dashboard: DashboardItem;
+  icono: any;
+  onPress: () => void;
+}) => {
+  const scaleAnim = useState(new Animated.Value(1))[0];
+
+  const pressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const pressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 6,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPressIn={pressIn}
+        onPressOut={pressOut}
+        onPress={onPress}
+        style={styles.tarjeta}
+      >
+        <Image source={icono} style={styles.icono} />
+        <Text style={styles.nombre}>
+          {dashboard.nombre_dashboard}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+
 const DashBoard: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute();
+  const scheme = useColorScheme();
+  const dark = scheme === "dark";
+
   const { proyectoId, tipo } = route.params as RouteParams;
 
   const [dashboards, setDashboards] = useState<DashboardItem[]>([]);
@@ -45,33 +104,22 @@ const DashBoard: React.FC = () => {
 
   useEffect(() => {
     const cargarDashboards = async () => {
-      if (!proyectoId) {
-        setLoading(false);
-        return;
-      }
-
-      const usuarioStr = await AsyncStorage.getItem("usuario");
-      const usuario = usuarioStr ? JSON.parse(usuarioStr) : null;
-
-      if (!usuario) {
-        setLoading(false);
-        return;
-      }
-
-      const cacheKey = `dashboards_${proyectoId}_${tipo}`;
-      const cache = await AsyncStorage.getItem(cacheKey);
-
-      if (cache) {
-        setDashboards(JSON.parse(cache));
-        setLoading(false);
-        return;
-      }
-
       try {
+        const usuarioStr = await AsyncStorage.getItem("usuario");
+        const usuario = usuarioStr ? JSON.parse(usuarioStr) : null;
+        if (!usuario || !proyectoId) return;
+
+        const cacheKey = `dashboards_${proyectoId}_${tipo}`;
+        const cache = await AsyncStorage.getItem(cacheKey);
+
+        if (cache) {
+          setDashboards(JSON.parse(cache));
+          return;
+        }
+
         const res = await fetch(
           `${URL}/dashboards_con_embed/${proyectoId}/?usuario_id=${usuario.id}&tipo=${tipo}`
         );
-
         const data = await res.json();
 
         if (res.ok) {
@@ -81,11 +129,9 @@ const DashBoard: React.FC = () => {
             cacheKey,
             JSON.stringify(dashboardsData)
           );
-        } else {
-          console.error("Error obteniendo dashboards:", data);
         }
-      } catch (err) {
-        console.error("Error de conexión:", err);
+      } catch (error) {
+        console.error("Error cargando dashboards:", error);
       } finally {
         setLoading(false);
       }
@@ -93,7 +139,6 @@ const DashBoard: React.FC = () => {
 
     cargarDashboards();
   }, [proyectoId, tipo]);
-
 
   const irTablero = (dashboard: DashboardItem) => {
     navigation.navigate("Tableros", {
@@ -104,7 +149,6 @@ const DashBoard: React.FC = () => {
     });
   };
 
- 
   const obtenerIcono = (nombre: string) => {
     const n = nombre.toLowerCase();
     if (n.includes("financiero")) return financiero;
@@ -113,119 +157,150 @@ const DashBoard: React.FC = () => {
     if (n.includes("agenda")) return agenda;
     if (n.includes("aranda")) return aranda;
     if (n.includes("multa")) return multa;
-    if (n.includes("conciliación cartera")) return conciliacion; 
+    if (n.includes("conciliación")) return conciliacion;
     if (n.includes("recaudo")) return recaudo;
     if (n.includes("consulta")) return consulta;
-    if (n.includes("predictivo")) return predictivo; 
-    return null;
+    if (n.includes("predictivo")) return predictivo;
+    return indicadores;
   };
 
   if (loading) {
     return (
-      <View style={styles.cargando}>
-        <ActivityIndicator size="large" color="#000" />
-        <Text style={styles.textoCarga}>Cargando dashboards...</Text>
-      </View>
+      <SafeAreaView
+        style={[
+          styles.safe,
+          {
+            paddingTop: insets.top,
+            backgroundColor: dark ? "#020617" : "#f1f5f9",
+          },
+        ]}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2563eb" />
+          <Text style={{ color: dark ? "#94a3b8" : "#334155" }}>
+            Cargando dashboards...
+          </Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.contenedor}>
-      <Text style={styles.titulo}>Dashboards del Proyecto</Text>
-      <Text style={styles.subtitulo}>
-        Selecciona un dashboard para visualizarlo
-      </Text>
+    <SafeAreaView
+      style={[
+        styles.safe,
+        {
+          paddingTop: insets.top,
+          backgroundColor: dark ? "#020617" : "#f1f5f9",
+        },
+      ]}
+    >
+      <View style={styles.cuerpo}>
+        <Text
+          style={[
+            styles.titulo,
+            { color: dark ? "#e5e7eb" : "#0f172a" },
+          ]}
+        >
+          DASHBOARDS
+        </Text>
 
-      <ScrollView contentContainerStyle={styles.listaTarjetas}>
-        {dashboards.length > 0 ? (
-          dashboards.map((dashboard) => (
-            <TouchableOpacity
-              key={dashboard.id}
-              style={styles.tarjeta}
-              onPress={() => irTablero(dashboard)}
-            >
-              <View style={styles.iconoContenedor}>
-                {obtenerIcono(dashboard.nombre_dashboard) ? (
-                  <Image
-                    source={obtenerIcono(dashboard.nombre_dashboard)!}
-                    style={styles.icono}
-                  />
-                ) : (
-                  <Text style={styles.iconoGenerico}>📊</Text>
-                )}
-              </View>
+        <Text
+          style={[
+            styles.subtitulo,
+            { color: dark ? "#94a3b8" : "#475569" },
+          ]}
+        >
+          Selecciona un dashboard para visualizarlo
+        </Text>
 
-              <Text style={styles.nombre}>
-                {dashboard.nombre_dashboard}
-              </Text>
-            </TouchableOpacity>
-          ))
-        ) : (
-          <Text style={{ marginTop: 20 }}>
-            No hay dashboards disponibles para este tipo.
-          </Text>
-        )}
-      </ScrollView>
-    </View>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            alignItems: "center",
+            paddingBottom: insets.bottom + 80,
+          }}
+        >
+          {dashboards.length > 0 ? (
+            dashboards.map((dashboard) => (
+              <TarjetaDashboard
+                key={dashboard.id}
+                dashboard={dashboard}
+                icono={obtenerIcono(dashboard.nombre_dashboard)}
+                onPress={() => irTablero(dashboard)}
+              />
+            ))
+          ) : (
+            <Text style={{ color: dark ? "#94a3b8" : "#64748b", marginTop: 40 }}>
+              No hay dashboards disponibles para este tipo.
+            </Text>
+          )}
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
 
 export default DashBoard;
 
+
 const styles = StyleSheet.create({
-  contenedor: {
+  safe: {
     flex: 1,
-    backgroundColor: "#e9e9e9ff",
-    paddingTop: 40,
+  },
+
+  cuerpo: {
+    flex: 1,
     alignItems: "center",
   },
-  cargando: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  textoCarga: {
-    marginTop: 15,
-    fontSize: 16,
-  },
+
   titulo: {
-    color: "black",
     fontSize: 26,
-    fontWeight: "700",
+    fontWeight: "800",
+    marginTop: 10,
   },
+
   subtitulo: {
-    color: "#464646ff",
     fontSize: 14,
+    marginTop: 6,
     marginBottom: 20,
+    textAlign: "center",
+    paddingHorizontal: 30,
   },
-  listaTarjetas: {
-    paddingBottom: 40,
-    alignItems: "center",
-  },
+
   tarjeta: {
-    width: 260,
-    backgroundColor: "#fff",
-    padding: 18,
-    borderRadius: 12,
+    width: CARD_WIDTH,
+    height: 200,
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    padding: 20,
+    marginBottom: 22,
     alignItems: "center",
-    marginBottom: 20,
-    elevation: 5,
+    justifyContent: "center",
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
   },
-  iconoContenedor: {
-    marginBottom: 10,
-  },
+
   icono: {
     width: 80,
     height: 80,
-    resizeMode: "contain",
+    resizeMode: "contain", 
   },
-  iconoGenerico: {
-    fontSize: 60,
-  },
+
   nombre: {
-    marginTop: 10,
-    fontSize: 18,
-    fontWeight: "600",
+    marginTop: 14,
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#0f172a", 
     textAlign: "center",
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
