@@ -158,7 +158,7 @@ const ProyectosUsuario: React.FC = () => {
               { color: dark ? "#cbd5f5" : "#334155" },
             ]}
           >
-            Cargando tus módulos...
+            Cargando tus proyectos...
           </Text>
         </View>
       </SafeAreaView>
@@ -182,7 +182,7 @@ const ProyectosUsuario: React.FC = () => {
             { color: dark ? "#f8fafc" : "#020617" },
           ]}
         >
-          MÓDULOS
+          Panel de proyectos
         </Text>
 
         <Text
@@ -191,7 +191,7 @@ const ProyectosUsuario: React.FC = () => {
             { color: dark ? "#94a3b8" : "#475569" },
           ]}
         >
-          Aquí puedes ver los módulos en los que estás participando
+          Aquí puedes ver los proyectos en los que estás participando
         </Text>
 
         <ScrollView
@@ -226,7 +226,7 @@ const ProyectosUsuario: React.FC = () => {
                 { color: dark ? "#94a3b8" : "#64748b" },
               ]}
             >
-              No tienes módulos asignados.
+              No tienes proyectos asignados.
             </Text>
           )}
         </ScrollView>

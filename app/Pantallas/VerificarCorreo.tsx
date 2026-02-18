@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
-import React, { useRef, useState } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import React, { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -25,6 +25,17 @@ const VerificarCorreo: React.FC = () => {
   const [correo, setCorreo] = useState("");
   const [errores, setErrores] = useState<Errores>({});
   const [loading, setLoading] = useState(false);
+
+  useFocusEffect(
+  useCallback(() => {
+    setCorreo("");
+    setErrores({});
+    setLoading(false);
+    setModalVisible(false);
+    fadeAnim.setValue(0);
+    scaleAnim.setValue(0.8);
+  }, [])
+);
 
   /* ===== MODAL ===== */
   const [modalVisible, setModalVisible] = useState(false);

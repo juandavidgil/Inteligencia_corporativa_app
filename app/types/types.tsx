@@ -13,6 +13,8 @@ export type StackParamList = {
     nombreDashboard: string;
 
 };
+  Explorador: { proyectoId: number };
+  Carpetas: { proyectoId: number };
 
     
 }
@@ -24,3 +26,5 @@ export type ProyectoUsuarioScreenNavigationProp = RouteProp<StackParamList, 'Pro
 export type TiposDashboardScreenNavigationProp = RouteProp<StackParamList, 'Tipos'>;
 export type DashboardsScreenNavigationProp = RouteProp<StackParamList, 'Dashboards'>;
 export type TablerosScreenNavigationProp = RouteProp<StackParamList, 'Tableros'>;
+export type ExploradorScreenNavigationProp = RouteProp<StackParamList, 'Explorador'>;
+export type CarpetasScreenNavigationProp = RouteProp<StackParamList, 'Carpetas'>;

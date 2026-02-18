@@ -1,14 +1,17 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import DashBoard from './Pantallas/DashBoards';
-import InicioSesion from "./Pantallas/InicioSesion";
-import VerificarCorreo from "./Pantallas/VerificarCorreo";
 import CambiarContrasena from "./Pantallas/CambiarContrasena";
+import Carpetas from './Pantallas/Carpetas';
+import DashBoard from './Pantallas/DashBoards';
+import ExploradorProyecto from './Pantallas/ExploradorProyecto';
+import InicioSesion from "./Pantallas/InicioSesion";
 import ProyectosUsuario from "./Pantallas/ProyectosUsuario";
 import Tableros from './Pantallas/Tableros';
 import TiposDashboards from "./Pantallas/TiposDashboards";
+import VerificarCorreo from "./Pantallas/VerificarCorreo";
 import { StackParamList } from './types/types';
+
 
 const Stack = createNativeStackNavigator<StackParamList>();
 
@@ -23,6 +26,8 @@ export default function App() {
         <Stack.Screen name="Tipos" component={TiposDashboards} />
         <Stack.Screen name="Dashboards" component={DashBoard} />
         <Stack.Screen name="Tableros" component={Tableros} />
+        <Stack.Screen name="Explorador" component={ExploradorProyecto} />
+        <Stack.Screen name="Carpetas" component={Carpetas} />
       </Stack.Navigator>
     </NavigationContainer>
   );

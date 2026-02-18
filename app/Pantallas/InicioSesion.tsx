@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
+import { useNavigation } from "@react-navigation/native";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -10,15 +10,19 @@ import {
   TextInput,
   TouchableOpacity,
   useColorScheme,
-  View,
+  View
 } from "react-native";
 import { URL } from "../config/URL";
 
+//const TERMS_VERSION = "1.0";
+//const PRIVACY_URL = "https://wa-inteligenciacorporativa-frn-dt-prod-anb2ehg4caakb4et.eastus2-01.azurewebsites.net/politica-privacidad";
+
+
 const InicioDeSesion: React.FC = () => {
   const navigation = useNavigation<any>();
-  const route = useRoute();
   const scheme = useColorScheme();
   const dark = scheme === "dark";
+
 
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
@@ -28,23 +32,17 @@ const InicioDeSesion: React.FC = () => {
   const [errorGeneral, setErrorGeneral] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [nombreUsuario, setNombreUsuario] = useState("");
 
+  const [modalBienvenida, setModalBienvenida] = useState(false);
+  //const [modalTerminosVisible, setModalTerminosVisible] = useState(false);
+
+  const [nombreUsuario, setNombreUsuario] = useState("");
+  //const [aceptaTerminos, setAceptaTerminos] = useState(false);
+
+ 
   const validarCorreo = (correo: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
 
-  useEffect(() => {
-    const limpiar = async () => {
-      await AsyncStorage.clear();
-      setCorreo("");
-      setPassword("");
-      setErrorCorreo("");
-      setErrorPassword("");
-      setErrorGeneral("");
-    };
-    limpiar();
-  }, [route.key]);
 
   const Ingresar = async () => {
     setErrorCorreo("");
@@ -54,15 +52,15 @@ const InicioDeSesion: React.FC = () => {
     let valido = true;
 
     if (!correo.trim()) {
-      setErrorCorreo("este campo es obligatorio");
+      setErrorCorreo("Este campo es obligatorio");
       valido = false;
     } else if (!validarCorreo(correo)) {
-      setErrorCorreo("Ingrese un correo válido, ejemplo usuario@datatools.com.co");
+      setErrorCorreo("Ingrese un correo válido");
       valido = false;
     }
 
     if (!password.trim()) {
-      setErrorPassword("este campo es obligatorio");
+      setErrorPassword("Este campo es obligatorio");
       valido = false;
     }
 
@@ -84,11 +82,23 @@ const InicioDeSesion: React.FC = () => {
         return;
       }
 
+
       await AsyncStorage.setItem("usuario", JSON.stringify(data.usuario));
-      await AsyncStorage.setItem("powerbi_token", data.powerbi_token);
+      await AsyncStorage.setItem("access_token", data.access);
+      await AsyncStorage.setItem("refresh_token", data.refresh);
+
 
       setNombreUsuario(data.usuario.nombre);
-      setModalVisible(true);
+      setModalBienvenida(true);
+
+/*       if (data.acepto_terminos) {
+        setNombreUsuario(data.usuario.nombre);
+        setModalBienvenida(true);
+      }
+      else {
+        setModalTerminosVisible(true);
+      } */
+   
     } catch {
       setErrorGeneral("Error al conectar con el servidor");
     } finally {
@@ -96,11 +106,52 @@ const InicioDeSesion: React.FC = () => {
     }
   };
 
+
+/* const AceptarTerminos = async () => {
+  try {
+    const access_token = await AsyncStorage.getItem("access_token");
+    const usuarioStr = await AsyncStorage.getItem("usuario");
+
+    if (!access_token || !usuarioStr) {
+      setErrorGeneral("Sesión inválida. Inicie sesión nuevamente.");
+      return;
+    }
+
+    const usuario = JSON.parse(usuarioStr);
+
+    const response = await fetch(`${URL}/aceptar-terminos-app/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${access_token}`,
+      },
+      body: JSON.stringify({
+        version: TERMS_VERSION,
+        plataforma: Platform.OS,
+      }),
+    });
+
+    if (!response.ok) {
+      setErrorGeneral("No fue posible registrar la aceptación");
+      return;
+    }
+
+    setModalTerminosVisible(false);
+    setNombreUsuario(usuario.nombre);
+    setModalBienvenida(true);
+  } catch {
+    setErrorGeneral("Error de conexión");
+  }
+}; */
+
+
+
+
   return (
     <View
       style={[
         styles.contenedor,
-        { backgroundColor: dark ? "#0d0f1aff" : "#e9e9e9" },
+        { backgroundColor: dark ? "#0d0f1a" : "#e9e9e9" },
       ]}
     >
       <View
@@ -123,28 +174,14 @@ const InicioDeSesion: React.FC = () => {
           Inteligencia Corporativa
         </Text>
 
-        <Text
-          style={[
-            styles.label,
-            { color: dark ? "#cbd5f5" : "#020617" },
-          ]}
-        >
+        <Text style={[styles.label, { color: dark ? "#cbd5f5" : "#020617" }]}>
           Correo electrónico
         </Text>
 
         <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: dark ? "#020617" : "#e5e7eb",
-              color: dark ? "#f8fafc" : "#020617",
-              borderColor: dark ? "#334155" : "transparent",
-              borderWidth: dark ? 1 : 0,
-            },
-            errorCorreo && styles.inputError,
-          ]}
+          style={[styles.input, errorCorreo && styles.inputError]}
           placeholder="usuario@datatools.com.co"
-          placeholderTextColor={dark ? "#94a3b8" : "#6b7280"}
+          placeholderTextColor="#6b7280"
           value={correo}
           onChangeText={setCorreo}
           keyboardType="email-address"
@@ -155,28 +192,14 @@ const InicioDeSesion: React.FC = () => {
           <Text style={styles.errorText}>{errorCorreo}</Text>
         )}
 
-        <Text
-          style={[
-            styles.label,
-            { color: dark ? "#cbd5f5" : "#020617" },
-          ]}
-        >
+        <Text style={[styles.label, { color: dark ? "#cbd5f5" : "#020617" }]}>
           Contraseña
         </Text>
 
         <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: dark ? "#020617" : "#e5e7eb",
-              color: dark ? "#f8fafc" : "#020617",
-              borderColor: dark ? "#334155" : "transparent",
-              borderWidth: dark ? 1 : 0,
-            },
-            errorPassword && styles.inputError,
-          ]}
+          style={[styles.input, errorPassword && styles.inputError]}
           placeholder="Ingrese su contraseña"
-          placeholderTextColor={dark ? "#94a3b8" : "#6b7280"}
+          placeholderTextColor="#6b7280"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -193,7 +216,7 @@ const InicioDeSesion: React.FC = () => {
         <TouchableOpacity
           style={styles.boton}
           onPress={Ingresar}
-          disabled={loading}
+    //      disabled={loading || modalTerminosVisible}
         >
           {loading ? (
             <ActivityIndicator color="#fff" />
@@ -201,65 +224,25 @@ const InicioDeSesion: React.FC = () => {
             <Text style={styles.botonTexto}>Ingresar</Text>
           )}
         </TouchableOpacity>
-    <TouchableOpacity
-  style={[
-    styles.botonVerificar,
-    { borderColor: dark ? "#475569" : "#2563eb" },
-  ]}
-  onPress={() => navigation.navigate("VerificarCorreo")}
->
-  <Text
-    style={[
-      styles.botonVerificarTexto,
-      { color: dark ? "#cbd5f5" : "#2563eb" },
-    ]}
-  >
-    Cambiar contraseña
-  </Text>
-</TouchableOpacity>
 
-
-        <Text
-          style={[
-            styles.slogan,
-            { color: dark ? "#94a3b8" : "#4556a3ff" },
-          ]}
+        <TouchableOpacity
+          style={styles.botonVerificar}
+          onPress={() => navigation.navigate("VerificarCorreo")}
         >
-          "Producto No Para"
-        </Text>
+          <Text style={styles.botonVerificarTexto}>Cambiar contraseña</Text>
+        </TouchableOpacity>
       </View>
 
-     
-      <Modal transparent visible={modalVisible} animationType="fade">
+
+      <Modal transparent visible={modalBienvenida} animationType="fade">
         <View style={styles.modalOverlay}>
-          <View
-            style={[
-              styles.modalCard,
-              { backgroundColor: dark ? "#020617" : "#ffffff" },
-            ]}
-          >
-            <Text
-              style={[
-                styles.modalTitulo,
-                { color: dark ? "#f8fafc" : "#020617" },
-              ]}
-            >
-              Bienvenido
-            </Text>
-
-            <Text
-              style={[
-                styles.modalNombre,
-                { color: dark ? "#f8fafc" : "#020617" },
-              ]}
-            >
-              {nombreUsuario}
-            </Text>
-
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitulo}>Bienvenido</Text>
+            <Text style={styles.modalNombre}>{nombreUsuario}</Text>
             <TouchableOpacity
               style={styles.modalBoton}
               onPress={() => {
-                setModalVisible(false);
+                setModalBienvenida(false);
                 navigation.navigate("ProyectosUsuario");
               }}
             >
@@ -268,88 +251,71 @@ const InicioDeSesion: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+
+{/*       <Modal transparent visible={modalTerminosVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitulo}>Términos y Condiciones</Text>
+
+            <Text style={{ textAlign: "center", marginBottom: 15 }}>
+              Debes aceptar los términos y condiciones y la política de
+              privacidad para continuar.
+            </Text>
+
+
+
+            <TouchableOpacity onPress={() => Linking.openURL(PRIVACY_URL)}>
+              <Text style={styles.link}>Ver TyC y Política de Privacidad</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.modalBoton,
+                { opacity: aceptaTerminos ? 1 : 0.6 },
+              ]}
+              disabled={!aceptaTerminos}
+              onPress={AceptarTerminos}
+            >
+              <Text style={styles.modalBotonTexto}>Aceptar y continuar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setAceptaTerminos(!aceptaTerminos)}
+            >
+              <Text style={{ marginTop: 10 }}>
+                {aceptaTerminos ? "☑" : "☐"} He leído y acepto los términos
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal> */}
     </View>
   );
 };
 
 export default InicioDeSesion;
 
+
 const styles = StyleSheet.create({
-  contenedor: {
-    flex: 1,
-    backgroundColor: "#e9e9e9",
-    justifyContent: "center",
-    padding: 20,
-  },
-  card: {
-    backgroundColor: "#fff",
-    padding: 25,
-    borderRadius: 15,
-    elevation: 2,
-  },
-  img: {
-    width: "100%",
-    height: 120,
-    resizeMode: "contain",
-    
-  },
-  titulo: {
-    fontSize: 24,
-    fontWeight: "700",
-    textAlign: "center",
-    marginVertical: 20,
-  },
-  label: {
-    fontSize: 15,
-    marginBottom: 5,
-    marginTop: 15
-  },
-  input: {
-    backgroundColor: "#e5e7eb",
-    padding: 12,
-    borderRadius: 10,
-  },
-  inputError: {
-    borderWidth: 1,
-    borderColor: "#dc2626",
-  },
-  errorText: {
-    color: "#dc2626",
-    fontSize: 12,
-    marginBottom: 8,
-  },
-  errorGeneral: {
-    color: "#dc2626",
-    textAlign: "center",
-    marginTop: 10,
-  },
+  contenedor: { flex: 1, justifyContent: "center", padding: 20 },
+  card: { padding: 25, borderRadius: 15 },
+  img: { width: "100%", height: 120, resizeMode: "contain" },
+  titulo: { fontSize: 24, fontWeight: "700", textAlign: "center", margin: 20 },
+  label: { marginTop: 15 },
+  input: { backgroundColor: "#e5e7eb", padding: 12, borderRadius: 10 },
+  inputError: { borderWidth: 1, borderColor: "#dc2626" },
+  errorText: { color: "#dc2626", fontSize: 12 },
+  errorGeneral: { color: "#dc2626", textAlign: "center", marginTop: 10 },
   boton: {
     backgroundColor: "#2563eb",
     padding: 14,
     borderRadius: 10,
     marginTop: 25,
   },
-  botonTexto: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "600",
-  },
-  botonSecundario: {
-    marginTop: 15,
-    alignItems: "center",
-  },
-  botonSecundarioTexto: {
-    color: "#2563eb",
-    fontSize: 14,
-    fontWeight: "600",
-    textDecorationLine: "underline",
-  },
-  slogan: {
-    marginTop: 20,
-    textAlign: "center",
-    fontStyle: "italic",
-  },
-
+  botonTexto: { color: "#fff", textAlign: "center", fontWeight: "600" },
+  botonVerificar: { marginTop: 15, alignItems: "center" },
+  botonVerificarTexto: { color: "#2563eb", fontWeight: "600" },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
@@ -358,42 +324,19 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     backgroundColor: "#fff",
-    width: "80%",
     padding: 25,
     borderRadius: 15,
+    width: "80%",
     alignItems: "center",
   },
-  modalTitulo: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 10,
-  },
-  modalNombre: {
-    fontSize: 18,
-    marginBottom: 20,
-  },
+  modalTitulo: { fontSize: 20, fontWeight: "700", marginBottom: 10 },
+  modalNombre: { fontSize: 18, marginBottom: 20 },
   modalBoton: {
     backgroundColor: "#2563eb",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
+    padding: 12,
     borderRadius: 10,
+    marginTop: 15,
   },
-  modalBotonTexto: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  botonVerificar: {
-  marginTop: 15,
-  paddingVertical: 10,
-  borderRadius: 10,
-  borderWidth: 1,
-  alignItems: "center",
-},
-
-botonVerificarTexto: {
-  fontSize: 14,
-  fontWeight: "600",
-},
-
+  modalBotonTexto: { color: "#fff", fontWeight: "600" },
+  link: { color: "#2563eb", marginBottom: 8 },
 });
-

@@ -202,7 +202,7 @@ const DashBoard: React.FC = () => {
             { color: dark ? "#e5e7eb" : "#0f172a" },
           ]}
         >
-          DASHBOARDS
+          Dashboards
         </Text>
 
         <Text

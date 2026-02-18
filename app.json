@@ -4,7 +4,12 @@
     "slug": "Inteligencia_Corporativa_app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/data.png",
+    "icon": "./assets/img/data.png",
+    "splash": {
+      "image": "./assets/img/data.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#E6F4FE"
+    },
     "scheme": "inteligenciacorporativaapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -12,21 +17,18 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.juandavidgil.inteligenciacorporativa",
+      "icon": "./assets/img/data.png",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/img/data.png",
+        "backgroundColor": "#E6F4FE"
       },
-
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.juandavidgil.Inteligencia_Corporativa_app"
+      "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "single"
     },
- 
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

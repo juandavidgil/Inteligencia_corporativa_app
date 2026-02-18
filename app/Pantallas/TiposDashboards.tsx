@@ -17,11 +17,11 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { URL } from "../config/URL";
 
-import tipo_agenda from "../../assets/img/agenda.png";
-import tipo_financiero from "../../assets/img/financiero.png";
-import tipo_indicadores from "../../assets/img/indicadores.png";
-import tipo_operativo from "../../assets/img/operativo.png";
-import tipo_predictivo from "../../assets/img/predictivo.png";
+import tipo_agenda from "../../assets/img/tipo_agenda.png";
+import tipo_financiero from "../../assets/img/tipo_financiero.png";
+import tipo_indicadores from "../../assets/img/tipo_indicadores.png";
+import tipo_operativo from "../../assets/img/tipo_operativo.png";
+import tipo_predictivo from "../../assets/img/tipo_predictivo.png";
 
 
 interface RouteParams {
@@ -191,7 +191,7 @@ const TiposDashboard: React.FC = () => {
             { color: dark ? "#e5e7eb" : "#0f172a" },
           ]}
         >
-          TIPOS DE DASHBOARD
+          Tipos de dashboards
         </Text>
 
         <Text
