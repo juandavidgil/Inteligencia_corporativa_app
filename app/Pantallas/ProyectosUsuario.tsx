@@ -16,10 +16,10 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import ATM from "../../assets/img/atm.png";
 import Cartagena from "../../assets/img/cartagena.png";
 import Chia from "../../assets/img/chia.png";
 import Data from "../../assets/img/datatools.jpg";
+import ATM from "../../assets/img/logo_atm.png";
 import MOVIDIC from "../../assets/img/movidic.png";
 import Neiva from "../../assets/img/neiva.jpg";
 import Silvania from "../../assets/img/silvania.jpg";
@@ -30,6 +30,7 @@ import { URL } from "../config/URL";
 interface Proyecto {
   id: number;
   nombre_proyecto: string;
+  tiene_carpeta: boolean;
 }
 
 const { width } = Dimensions.get("window");
@@ -105,23 +106,33 @@ const ProyectosUsuario: React.FC = () => {
     try {
       const usuarioString = await AsyncStorage.getItem("usuario");
       const usuario = usuarioString ? JSON.parse(usuarioString) : null;
+      console.log("usuario que inicia sesion ",usuario)
       if (!usuario?.id) return;
 
-      const cache = await AsyncStorage.getItem("proyectos_usuario");
+/*       const cache = await AsyncStorage.getItem("proyectos_usuario");
       if (cache) {
         setProyectos(JSON.parse(cache));
         return;
       }
-
-      const response = await fetch(`${URL}/proyectos_usuario/${usuario.id}/`);
+ */
+      const response = await fetch(`${URL}/proyectos_usuario/${usuario.id}/`
+ 
+      );
       const data = await response.json();
+      console.log("DATA DESDE APP:", JSON.stringify(data));
+
+
 
       if (response.ok) {
+
         setProyectos(data);
+       
         await AsyncStorage.setItem(
           "proyectos_usuario",
           JSON.stringify(data)
         );
+       
+         
       }
     } catch (error) {
       console.error("Error cargando proyectos:", error);
@@ -137,6 +148,7 @@ const ProyectosUsuario: React.FC = () => {
 
   useEffect(() => {
     cargarProyectos();
+    console.log("URL ACTUAL:", URL);
   }, []);
 
   if (loading) {
@@ -211,10 +223,21 @@ const ProyectosUsuario: React.FC = () => {
                   key={proyecto.id}
                   proyecto={proyecto}
                   imagen={imagen}
-                  onPress={() =>
-                    navigation.navigate("Tipos", {
+                  onPress={() => {
+                    console.log("tiene_carpeta:", proyecto.tiene_carpeta);
+         
+                    if (proyecto.tiene_carpeta == true) {
+                      navigation.navigate("Explorador",{
+                        proyectoId: proyecto.id,
+                      } )
+                    }else {
+                      navigation.navigate("Tipos", {
                       proyectoId: proyecto.id,
                     })
+                    }
+                    }
+
+                
                   }
                 />
               );

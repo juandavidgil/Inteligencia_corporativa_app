@@ -27,7 +27,7 @@ export default function App() {
         <Stack.Screen name="Dashboards" component={DashBoard} />
         <Stack.Screen name="Tableros" component={Tableros} />
         <Stack.Screen name="Explorador" component={ExploradorProyecto} />
-        <Stack.Screen name="Carpetas" component={Carpetas} />
+        <Stack.Screen name="Carpeta" component={Carpetas} />
       </Stack.Navigator>
     </NavigationContainer>
   );

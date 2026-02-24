@@ -26,9 +26,9 @@ import financiero from "../../assets/img/financiero.png";
 import indicadores from "../../assets/img/indicadores.png";
 import multa from "../../assets/img/multa.png";
 import operativo from "../../assets/img/operativo.png";
+import predeterminado from "../../assets/img/predeterminado.png";
 import predictivo from "../../assets/img/predictivo.png";
 import recaudo from "../../assets/img/recaudo.png";
-
 
 interface DashboardItem {
   id: number;
@@ -161,7 +161,7 @@ const DashBoard: React.FC = () => {
     if (n.includes("recaudo")) return recaudo;
     if (n.includes("consulta")) return consulta;
     if (n.includes("predictivo")) return predictivo;
-    return indicadores;
+    return predeterminado;
   };
 
   if (loading) {

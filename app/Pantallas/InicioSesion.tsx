@@ -4,7 +4,9 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Linking,
   Modal,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -14,8 +16,8 @@ import {
 } from "react-native";
 import { URL } from "../config/URL";
 
-//const TERMS_VERSION = "1.0";
-//const PRIVACY_URL = "https://wa-inteligenciacorporativa-frn-dt-prod-anb2ehg4caakb4et.eastus2-01.azurewebsites.net/politica-privacidad";
+const TERMS_VERSION = "1.0";
+const PRIVACY_URL = "https://wa-inteligenciacorporativa-frn-dt-prod-anb2ehg4caakb4et.eastus2-01.azurewebsites.net/politica-privacidad";
 
 
 const InicioDeSesion: React.FC = () => {
@@ -34,12 +36,13 @@ const InicioDeSesion: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const [modalBienvenida, setModalBienvenida] = useState(false);
-  //const [modalTerminosVisible, setModalTerminosVisible] = useState(false);
+  const [modalTerminosVisible, setModalTerminosVisible] = useState(false);
 
   const [nombreUsuario, setNombreUsuario] = useState("");
-  //const [aceptaTerminos, setAceptaTerminos] = useState(false);
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
 
- 
+
+
   const validarCorreo = (correo: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
 
@@ -88,17 +91,15 @@ const InicioDeSesion: React.FC = () => {
       await AsyncStorage.setItem("refresh_token", data.refresh);
 
 
-      setNombreUsuario(data.usuario.nombre);
-      setModalBienvenida(true);
 
-/*       if (data.acepto_terminos) {
+      if (data.acepto_terminos) {
+        await cargarProyectos(data.usuario.id);
         setNombreUsuario(data.usuario.nombre);
         setModalBienvenida(true);
-      }
-      else {
+      } else {
         setModalTerminosVisible(true);
-      } */
-   
+      }
+
     } catch {
       setErrorGeneral("Error al conectar con el servidor");
     } finally {
@@ -107,42 +108,101 @@ const InicioDeSesion: React.FC = () => {
   };
 
 
-/* const AceptarTerminos = async () => {
-  try {
-    const access_token = await AsyncStorage.getItem("access_token");
-    const usuarioStr = await AsyncStorage.getItem("usuario");
+  const cargarProyectos = async (usuarioId: number) => {
+    try {
+      const access_token = await AsyncStorage.getItem("access_token");
 
-    if (!access_token || !usuarioStr) {
-      setErrorGeneral("Sesión inválida. Inicie sesión nuevamente.");
-      return;
+      const proyectosRes = await fetch(
+        `${URL}/proyectos_usuario/${usuarioId}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        }
+      );
+
+      const data = await proyectosRes.json();
+
+      if (!proyectosRes.ok) {
+        console.error("Error al obtener proyectos");
+        return;
+      }
+
+      await AsyncStorage.setItem("proyectos", JSON.stringify(data));
+
+    } catch (error) {
+      console.error("No se cargaron los proyectos del usuario");
     }
+  };
 
-    const usuario = JSON.parse(usuarioStr);
+  const redireccionProyectos = async () => {
+    try {
+      const proyectosCache = await AsyncStorage.getItem("proyectos");
+      const usuarioCache = await AsyncStorage.getItem("usuario")
+      
+      const usuario = usuarioCache 
+        ? JSON.parse(usuarioCache)
+        : [];
 
-    const response = await fetch(`${URL}/aceptar-terminos-app/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${access_token}`,
-      },
-      body: JSON.stringify({
-        version: TERMS_VERSION,
-        plataforma: Platform.OS,
-      }),
-    });
+      const proyectos = proyectosCache
+        ? JSON.parse(proyectosCache)
+        : [];
 
-    if (!response.ok) {
-      setErrorGeneral("No fue posible registrar la aceptación");
-      return;
+      setModalBienvenida(false);
+
+      if (proyectos.length === 1) {
+        const proyecto = proyectos[0];
+
+        navigation.navigate(
+          proyecto.tiene_carpeta ? "Explorador" : "Tipos", {proyectoId: proyecto.id}
+          
+        );
+      } else {
+        navigation.navigate("ProyectosUsuario");
+      }
+
+    } catch (error) {
+      console.error("Error leyendo proyectos", error);
+      navigation.navigate("ProyectosUsuario");
     }
+  };
 
-    setModalTerminosVisible(false);
-    setNombreUsuario(usuario.nombre);
-    setModalBienvenida(true);
-  } catch {
-    setErrorGeneral("Error de conexión");
-  }
-}; */
+  const AceptarTerminos = async () => {
+    try {
+      const access_token = await AsyncStorage.getItem("access_token");
+      const usuarioStr = await AsyncStorage.getItem("usuario");
+
+      if (!access_token || !usuarioStr) {
+        setErrorGeneral("Sesión inválida. Inicie sesión nuevamente.");
+        return;
+      }
+
+      const usuario = JSON.parse(usuarioStr);
+
+      const response = await fetch(`${URL}/aceptar-terminos-app/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${access_token}`,
+        },
+        body: JSON.stringify({
+          version: TERMS_VERSION,
+          plataforma: Platform.OS,
+        }),
+      });
+
+      if (!response.ok) {
+        setErrorGeneral("No fue posible registrar la aceptación");
+        return;
+      }
+
+      setModalTerminosVisible(false);
+      setNombreUsuario(usuario.nombre);
+      setModalBienvenida(true);
+    } catch {
+      setErrorGeneral("Error de conexión");
+    }
+  };
 
 
 
@@ -160,10 +220,12 @@ const InicioDeSesion: React.FC = () => {
           { backgroundColor: dark ? "#020617" : "#ffffff" },
         ]}
       >
-        <Image
-          source={require("../../assets/img/datatools.jpg")}
-          style={styles.img}
-        />
+ <View style={styles.imgContainer}>
+  <Image
+    source={require("../../assets/img/datatools.jpg")}
+    style={styles.img}
+  />
+</View>
 
         <Text
           style={[
@@ -216,7 +278,7 @@ const InicioDeSesion: React.FC = () => {
         <TouchableOpacity
           style={styles.boton}
           onPress={Ingresar}
-    //      disabled={loading || modalTerminosVisible}
+          disabled={loading || modalTerminosVisible}
         >
           {loading ? (
             <ActivityIndicator color="#fff" />
@@ -241,10 +303,7 @@ const InicioDeSesion: React.FC = () => {
             <Text style={styles.modalNombre}>{nombreUsuario}</Text>
             <TouchableOpacity
               style={styles.modalBoton}
-              onPress={() => {
-                setModalBienvenida(false);
-                navigation.navigate("ProyectosUsuario");
-              }}
+              onPress={redireccionProyectos}
             >
               <Text style={styles.modalBotonTexto}>Continuar</Text>
             </TouchableOpacity>
@@ -253,7 +312,7 @@ const InicioDeSesion: React.FC = () => {
       </Modal>
 
 
-{/*       <Modal transparent visible={modalTerminosVisible} animationType="fade">
+      <Modal transparent visible={modalTerminosVisible} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitulo}>Términos y Condiciones</Text>
@@ -289,7 +348,7 @@ const InicioDeSesion: React.FC = () => {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal> */}
+      </Modal>
     </View>
   );
 };
@@ -300,7 +359,20 @@ export default InicioDeSesion;
 const styles = StyleSheet.create({
   contenedor: { flex: 1, justifyContent: "center", padding: 20 },
   card: { padding: 25, borderRadius: 15 },
-  img: { width: "100%", height: 120, resizeMode: "contain" },
+imgContainer: {
+  width: "40%",
+  height: 120,
+  borderRadius: 15,
+  overflow: "hidden",
+  alignSelf: "center",
+  marginBottom: 10, // opcional para mejor espaciado
+},
+
+img: {
+  width: "100%",
+  height: "100%",
+  resizeMode: "cover", // importante
+},
   titulo: { fontSize: 24, fontWeight: "700", textAlign: "center", margin: 20 },
   label: { marginTop: 15 },
   input: { backgroundColor: "#e5e7eb", padding: 12, borderRadius: 10 },

@@ -17,6 +17,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { URL } from "../config/URL";
 
+import predeterminado from "../../assets/img/predeterminado.png";
 import tipo_agenda from "../../assets/img/tipo_agenda.png";
 import tipo_financiero from "../../assets/img/tipo_financiero.png";
 import tipo_indicadores from "../../assets/img/tipo_indicadores.png";
@@ -26,6 +27,7 @@ import tipo_predictivo from "../../assets/img/tipo_predictivo.png";
 
 interface RouteParams {
   proyectoId: number;
+
 }
 
 const { width } = Dimensions.get("window");
@@ -82,62 +84,57 @@ const TiposDashboard: React.FC = () => {
   const scheme = useColorScheme();
   const dark = scheme === "dark";
 
-  const { proyectoId } = route.params as RouteParams;
+  const {  proyectoId } = route.params as RouteParams;
 
   const [tipos, setTipos] = useState<string[]>([]);
   const [proyecto, setProyecto] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        const usuarioStr = await AsyncStorage.getItem("usuario");
-        const usuario = usuarioStr ? JSON.parse(usuarioStr) : null;
-        const usuarioId = usuario?.id;
+useEffect(() => {
+  const cargarDatos = async () => {
+    try {
+      const usuarioStr = await AsyncStorage.getItem("usuario");
+      const usuario = usuarioStr ? JSON.parse(usuarioStr) : null;
+      const usuarioId = usuario?.id;
 
-        if (!usuarioId || !proyectoId) return;
+      if (!usuarioId || !proyectoId) return;
 
-        const cacheKey = `tipos_${proyectoId}`;
-        const cacheTipos = await AsyncStorage.getItem(cacheKey);
+      const cacheKey = `tipos_${proyectoId}`;
 
-        if (cacheTipos) {
-          setTipos(JSON.parse(cacheTipos));
-        }
-
-        if (!proyecto) {
-          const resProy = await fetch(
-            `${URL}/proyectos_usuario/${usuarioId}`
-          );
-          const proyectos = await resProy.json();
-          const proy = proyectos.find(
-            (p: any) => String(p.id) === String(proyectoId)
-          );
-          setProyecto(proy ? proy.nombre_proyecto : "Proyecto");
-        }
-
-        if (!cacheTipos) {
-          const resTipos = await fetch(
-            `${URL}/tipos_dashboards/${proyectoId}/?usuario_id=${usuarioId}`
-          );
-          const data = await resTipos.json();
-
-          if (resTipos.ok) {
-            setTipos(data.tipos || []);
-            await AsyncStorage.setItem(
-              cacheKey,
-              JSON.stringify(data.tipos || [])
-            );
-          }
-        }
-      } catch (error) {
-        console.error("Error cargando tipos:", error);
-      } finally {
-        setLoading(false);
+      if (!proyecto) {
+        const resProy = await fetch(
+          `${URL}/proyectos_usuario/${usuarioId}`
+        );
+        const proyectos = await resProy.json();
+        const proy = proyectos.find(
+          (p: any) => String(p.id) === String(proyectoId)
+        );
+        setProyecto(proy ? proy.nombre_proyecto : "Proyecto");
       }
-    };
 
-    cargarDatos();
-  }, [proyectoId]);
+      const resTipos = await fetch(
+        `${URL}/tipos_dashboards/${proyectoId}/?usuario_id=${usuarioId}`
+      );
+
+      const data = await resTipos.json();
+
+      if (resTipos.ok) {
+        setTipos(data.tipos || []);
+        await AsyncStorage.setItem(
+          cacheKey,
+          JSON.stringify(data.tipos || [])
+        );
+      }
+
+    } catch (error) {
+      console.error("Error cargando tipos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  cargarDatos();
+}, [proyectoId]);
 
   const abrirTipo = (tipo: string) => {
     navigation.navigate("Dashboards", { proyectoId, tipo });
@@ -150,7 +147,9 @@ const TiposDashboard: React.FC = () => {
     if (t.includes("operativo")) return tipo_operativo;
     if (t.includes("agenda")) return tipo_agenda;
     if (t.includes("predictivo")) return tipo_predictivo;
-    return tipo_indicadores;
+
+    
+    return predeterminado;
   };
 
   if (loading) {
