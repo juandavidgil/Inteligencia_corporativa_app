@@ -4,21 +4,31 @@
     "appVersionSource": "remote"
   },
   "build": {
+    "ios-production": {
+      "distribution": "app-store",
+      "autoIncrement": true,
+      "releaseChannel": "production",
+      "workflow": "managed"
+    },
+    "android-local": {
+      "distribution": "internal",
+      "workflow": "generic"
+    },
     "development": {
+      "distribution": "internal",
       "developmentClient": true,
-      "distribution": "internal"
-    },
-    "preview": {
-      "android": {
-        "buildType": "apk"
-      },
-      "distribution": "internal"
-    },
-    "production": {
-      "autoIncrement": true
+      "workflow": "managed"
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "TU_APPLE_ID",
+        "ascAppId": "TU_APP_ID"
+      },
+      "android": {
+        "track": "internal"
+      }
+    }
   }
 }

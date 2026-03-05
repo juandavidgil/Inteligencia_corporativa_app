@@ -4,27 +4,33 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Keyboard,
+  KeyboardAvoidingView,
   Linking,
   Modal,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   useColorScheme,
-  View
+  useWindowDimensions,
+  View,
 } from "react-native";
 import { URL } from "../config/URL";
 
 const TERMS_VERSION = "1.0";
-const PRIVACY_URL = "https://wa-inteligenciacorporativa-frn-dt-prod-anb2ehg4caakb4et.eastus2-01.azurewebsites.net/politica-privacidad";
-
+const PRIVACY_URL =
+  "https://wa-inteligenciacorporativa-frn-dt-prod-anb2ehg4caakb4et.eastus2-01.azurewebsites.net/politica-privacidad";
 
 const InicioDeSesion: React.FC = () => {
   const navigation = useNavigation<any>();
   const scheme = useColorScheme();
   const dark = scheme === "dark";
-
+  const { width, height } = useWindowDimensions();
+  const esLandscape = width > height;
 
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
@@ -41,13 +47,10 @@ const InicioDeSesion: React.FC = () => {
   const [nombreUsuario, setNombreUsuario] = useState("");
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
 
-
-
   const validarCorreo = (correo: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
 
-
-  const Ingresar = async () => {
+  const ingresar = async () => {
     setErrorCorreo("");
     setErrorPassword("");
     setErrorGeneral("");
@@ -85,12 +88,9 @@ const InicioDeSesion: React.FC = () => {
         return;
       }
 
-
       await AsyncStorage.setItem("usuario", JSON.stringify(data.usuario));
       await AsyncStorage.setItem("access_token", data.access);
       await AsyncStorage.setItem("refresh_token", data.refresh);
-
-
 
       if (data.acepto_terminos) {
         await cargarProyectos(data.usuario.id);
@@ -99,14 +99,13 @@ const InicioDeSesion: React.FC = () => {
       } else {
         setModalTerminosVisible(true);
       }
-
-    } catch {
+    } catch (error) {
+      console.error("Error en login:", error);
       setErrorGeneral("Error al conectar con el servidor");
     } finally {
       setLoading(false);
     }
   };
-
 
   const cargarProyectos = async (usuarioId: number) => {
     try {
@@ -121,53 +120,46 @@ const InicioDeSesion: React.FC = () => {
         }
       );
 
-      const data = await proyectosRes.json();
-
-      if (!proyectosRes.ok) {
-        console.error("Error al obtener proyectos");
+      if (proyectosRes.status === 401) {
+        navigation.navigate("Login");
         return;
       }
 
-      await AsyncStorage.setItem("proyectos", JSON.stringify(data));
+      if (!proyectosRes.ok) {
+        console.error("Error al obtener proyectos:", proyectosRes.status);
+        return;
+      }
 
+      const data = await proyectosRes.json();
+      await AsyncStorage.setItem("proyectos", JSON.stringify(data));
     } catch (error) {
-      console.error("No se cargaron los proyectos del usuario");
+      console.error("No se cargaron los proyectos del usuario", error);
     }
   };
 
   const redireccionProyectos = async () => {
     try {
       const proyectosCache = await AsyncStorage.getItem("proyectos");
-      const usuarioCache = await AsyncStorage.getItem("usuario")
-      
-      const usuario = usuarioCache 
-        ? JSON.parse(usuarioCache)
-        : [];
-
-      const proyectos = proyectosCache
-        ? JSON.parse(proyectosCache)
-        : [];
+      const proyectos = proyectosCache ? JSON.parse(proyectosCache) : [];
 
       setModalBienvenida(false);
 
       if (proyectos.length === 1) {
         const proyecto = proyectos[0];
-
         navigation.navigate(
-          proyecto.tiene_carpeta ? "Explorador" : "Tipos", {proyectoId: proyecto.id}
-          
+          proyecto.tiene_carpeta ? "Explorador" : "Tipos",
+          { proyectoId: proyecto.id }
         );
       } else {
         navigation.navigate("ProyectosUsuario");
       }
-
     } catch (error) {
       console.error("Error leyendo proyectos", error);
       navigation.navigate("ProyectosUsuario");
     }
   };
 
-  const AceptarTerminos = async () => {
+  const aceptarTerminos = async () => {
     try {
       const access_token = await AsyncStorage.getItem("access_token");
       const usuarioStr = await AsyncStorage.getItem("usuario");
@@ -199,101 +191,130 @@ const InicioDeSesion: React.FC = () => {
       setModalTerminosVisible(false);
       setNombreUsuario(usuario.nombre);
       setModalBienvenida(true);
-    } catch {
+    } catch (error) {
+      console.error("Error aceptando términos:", error);
       setErrorGeneral("Error de conexión");
     }
   };
 
-
-
-
   return (
-    <View
-      style={[
-        styles.contenedor,
-        { backgroundColor: dark ? "#0d0f1a" : "#e9e9e9" },
-      ]}
-    >
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: dark ? "#020617" : "#ffffff" },
-        ]}
+
+    <View style={{ flex: 1, backgroundColor: dark ? "#0d0f1a" : "#e9e9e9" }}>
+
+
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
- <View style={styles.imgContainer}>
-  <Image
-    source={require("../../assets/img/datatools.jpg")}
-    style={styles.img}
-  />
-</View>
 
-        <Text
-          style={[
-            styles.titulo,
-            { color: dark ? "#f8fafc" : "#020617" },
-          ]}
-        >
-          Inteligencia Corporativa
-        </Text>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={[
+              styles.contenedor,
+              { backgroundColor: dark ? "#0d0f1a" : "#e9e9e9" },
+            ]}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View
+              style={[
+                styles.card,
+                { backgroundColor: dark ? "#020617" : "#ffffff" },
+                esLandscape && styles.cardLandscape,
+              ]}
+            >
+              {/* IZQUIERDA */}
+              <View style={esLandscape ? styles.leftSide : undefined}>
+                <View style={styles.imgContainer}>
+                  <Image
+                    source={require("../../assets/img/datatools.jpg")}
+                    style={styles.img}
+                  />
+                </View>
+              </View>
 
-        <Text style={[styles.label, { color: dark ? "#cbd5f5" : "#020617" }]}>
-          Correo electrónico
-        </Text>
+              {/* DERECHA */}
+              <View style={esLandscape ? styles.rightSide : undefined}>
+                <Text
+                  style={[
+                    styles.titulo,
+                    { color: dark ? "#f8fafc" : "#020617" },
+                  ]}
+                >
+                  Inteligencia Corporativa
+                </Text>
 
-        <TextInput
-          style={[styles.input, errorCorreo && styles.inputError]}
-          placeholder="usuario@datatools.com.co"
-          placeholderTextColor="#6b7280"
-          value={correo}
-          onChangeText={setCorreo}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+                <Text
+                  style={[styles.label, { color: dark ? "#cbd5f5" : "#020617" }]}
+                >
+                  Correo electrónico
+                </Text>
 
-        {errorCorreo !== "" && (
-          <Text style={styles.errorText}>{errorCorreo}</Text>
-        )}
+                <TextInput
+                  style={[styles.input, errorCorreo ? styles.inputError : null]}
+                  placeholder="usuario@datatools.com.co"
+                  placeholderTextColor="#6b7280"
+                  value={correo}
+                  onChangeText={setCorreo}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
 
-        <Text style={[styles.label, { color: dark ? "#cbd5f5" : "#020617" }]}>
-          Contraseña
-        </Text>
+                {errorCorreo !== "" && (
+                  <Text style={styles.errorText}>{errorCorreo}</Text>
+                )}
 
-        <TextInput
-          style={[styles.input, errorPassword && styles.inputError]}
-          placeholder="Ingrese su contraseña"
-          placeholderTextColor="#6b7280"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+                <Text
+                  style={[styles.label, { color: dark ? "#cbd5f5" : "#020617" }]}
+                >
+                  Contraseña
+                </Text>
 
-        {errorPassword !== "" && (
-          <Text style={styles.errorText}>{errorPassword}</Text>
-        )}
+                <TextInput
+                  style={[
+                    styles.input,
+                    errorPassword ? styles.inputError : null,
+                  ]}
+                  placeholder="Ingrese su contraseña"
+                  placeholderTextColor="#6b7280"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                />
 
-        {errorGeneral !== "" && (
-          <Text style={styles.errorGeneral}>{errorGeneral}</Text>
-        )}
+                {errorPassword !== "" && (
+                  <Text style={styles.errorText}>{errorPassword}</Text>
+                )}
 
-        <TouchableOpacity
-          style={styles.boton}
-          onPress={Ingresar}
-          disabled={loading || modalTerminosVisible}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.botonTexto}>Ingresar</Text>
-          )}
-        </TouchableOpacity>
+                {errorGeneral !== "" && (
+                  <Text style={styles.errorGeneral}>{errorGeneral}</Text>
+                )}
 
-        <TouchableOpacity
-          style={styles.botonVerificar}
-          onPress={() => navigation.navigate("VerificarCorreo")}
-        >
-          <Text style={styles.botonVerificarTexto}>Cambiar contraseña</Text>
-        </TouchableOpacity>
-      </View>
+                <TouchableOpacity
+                  style={styles.boton}
+                  onPress={ingresar}
+                  disabled={loading || modalTerminosVisible}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.botonTexto}>Ingresar</Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.botonVerificar}
+                  onPress={() => navigation.navigate("VerificarCorreo")}
+                >
+                  <Text style={styles.botonVerificarTexto}>
+                    Cambiar contraseña
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+
 
 
       <Modal transparent visible={modalBienvenida} animationType="fade">
@@ -311,7 +332,6 @@ const InicioDeSesion: React.FC = () => {
         </View>
       </Modal>
 
-
       <Modal transparent visible={modalTerminosVisible} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -321,8 +341,6 @@ const InicioDeSesion: React.FC = () => {
               Debes aceptar los términos y condiciones y la política de
               privacidad para continuar.
             </Text>
-
-
 
             <TouchableOpacity onPress={() => Linking.openURL(PRIVACY_URL)}>
               <Text style={styles.link}>Ver TyC y Política de Privacidad</Text>
@@ -334,45 +352,74 @@ const InicioDeSesion: React.FC = () => {
                 { opacity: aceptaTerminos ? 1 : 0.6 },
               ]}
               disabled={!aceptaTerminos}
-              onPress={AceptarTerminos}
+              onPress={aceptarTerminos}
             >
               <Text style={styles.modalBotonTexto}>Aceptar y continuar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => setAceptaTerminos(!aceptaTerminos)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: aceptaTerminos }}
+              style={styles.checkboxContainer}
             >
-              <Text style={{ marginTop: 10 }}>
-                {aceptaTerminos ? "☑" : "☐"} He leído y acepto los términos
+              <View
+                style={[
+                  styles.checkbox,
+                  aceptaTerminos && styles.checkboxActivo,
+                ]}
+              >
+                {aceptaTerminos && (
+                  <Text style={styles.checkboxMarca}>✓</Text>
+                )}
+              </View>
+              <Text style={styles.checkboxTexto}>
+                He leído y acepto los términos
               </Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
+
     </View>
   );
 };
 
 export default InicioDeSesion;
 
-
 const styles = StyleSheet.create({
-  contenedor: { flex: 1, justifyContent: "center", padding: 20 },
+  cardLandscape: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  leftSide: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rightSide: {
+    flex: 1.5,
+  },
+  contenedor: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: 20,
+  },
   card: { padding: 25, borderRadius: 15 },
-imgContainer: {
-  width: "40%",
-  height: 120,
-  borderRadius: 15,
-  overflow: "hidden",
-  alignSelf: "center",
-  marginBottom: 10, // opcional para mejor espaciado
-},
-
-img: {
-  width: "100%",
-  height: "100%",
-  resizeMode: "cover", // importante
-},
+  imgContainer: {
+    width: "60%",
+    height: 160,
+    borderRadius: 15,
+    overflow: "hidden",
+    alignSelf: "center",
+    marginBottom: 10,
+  },
+  img: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
   titulo: { fontSize: 24, fontWeight: "700", textAlign: "center", margin: 20 },
   label: { marginTop: 15 },
   input: { backgroundColor: "#e5e7eb", padding: 12, borderRadius: 10 },
@@ -411,4 +458,31 @@ img: {
   },
   modalBotonTexto: { color: "#fff", fontWeight: "600" },
   link: { color: "#2563eb", marginBottom: 8 },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 14,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: "#2563eb",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+  checkboxActivo: {
+    backgroundColor: "#2563eb",
+  },
+  checkboxMarca: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  checkboxTexto: {
+    fontSize: 14,
+    color: "#374151",
+  },
 });

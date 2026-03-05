@@ -4,10 +4,14 @@ import React, { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
   useColorScheme,
 } from "react-native";
@@ -27,15 +31,15 @@ const VerificarCorreo: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   useFocusEffect(
-  useCallback(() => {
-    setCorreo("");
-    setErrores({});
-    setLoading(false);
-    setModalVisible(false);
-    fadeAnim.setValue(0);
-    scaleAnim.setValue(0.8);
-  }, [])
-);
+    useCallback(() => {
+      setCorreo("");
+      setErrores({});
+      setLoading(false);
+      setModalVisible(false);
+      fadeAnim.setValue(0);
+      scaleAnim.setValue(0.8);
+    }, [])
+  );
 
   /* ===== MODAL ===== */
   const [modalVisible, setModalVisible] = useState(false);
@@ -119,7 +123,11 @@ const VerificarCorreo: React.FC = () => {
   };
 
   return (
-    <>
+    // Misma estructura exacta que InicioDeSesion:
+    // View raíz → modal afuera → KeyboardAvoidingView → TouchableWithoutFeedback → contenido
+    <View style={{ flex: 1, backgroundColor: dark ? "#0d0f1a" : "#e9e9e9" }}>
+
+      {/* MODAL — fuera del KeyboardAvoidingView, igual que en InicioDeSesion */}
       {modalVisible && (
         <View style={styles.modalOverlay}>
           <Animated.View
@@ -135,94 +143,104 @@ const VerificarCorreo: React.FC = () => {
         </View>
       )}
 
-      <View
-        style={[
-          styles.contenedor,
-          { backgroundColor: dark ? "#0d0f1a" : "#e9e9e9" },
-        ]}
+      {/* PANTALLA PRINCIPAL */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: dark ? "#020617" : "#ffffff" },
-          ]}
-        >
-          <Text
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View
             style={[
-              styles.titulo,
-              { color: dark ? "#f8fafc" : "#020617" },
+              styles.contenedor,
+              { backgroundColor: dark ? "#0d0f1a" : "#e9e9e9" },
             ]}
           >
-            Verificar correo
-          </Text>
-
-          <Text
-            style={[
-              styles.label,
-              { color: dark ? "#cbd5f5" : "#020617" },
-            ]}
-          >
-            Correo electrónico
-          </Text>
-
-          <TextInput
-            placeholder="usuario@datatools.com.co"
-            placeholderTextColor={dark ? "#94a3b8" : "#6b7280"}
-            value={correo}
-            onChangeText={(text) => {
-              setCorreo(text);
-              setErrores({});
-            }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            style={[
-              styles.input,
-              {
-                backgroundColor: dark ? "#020617" : "#e5e7eb",
-                color: dark ? "#f8fafc" : "#020617",
-                borderColor: dark ? "#334155" : "transparent",
-                borderWidth: dark ? 1 : 0,
-              },
-              errores.correo && styles.inputError,
-            ]}
-          />
-
-          {errores.correo && (
-            <Text style={styles.errorText}>{errores.correo}</Text>
-          )}
-
-          <TouchableOpacity
-            style={styles.boton}
-            onPress={verificarCorreo}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.botonTexto}>Verificar correo</Text>
-            )}
-          </TouchableOpacity>
-
-
-        {/*   <TouchableOpacity
-            style={[
-              styles.botonVerificar,
-              { borderColor: dark ? "#475569" : "#2563eb" },
-            ]}
-            onPress={() => navigation.goBack()}
-          >
-            <Text
+            <View
               style={[
-                styles.botonVerificarTexto,
-                { color: dark ? "#cbd5f5" : "#2563eb" },
+                styles.card,
+                { backgroundColor: dark ? "#020617" : "#ffffff" },
               ]}
             >
-              Volver a iniciar sesión
-            </Text>
-          </TouchableOpacity> */}
-        </View>
-      </View>
-    </>
+              <View style={styles.encabezado}>
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
+                  activeOpacity={0.7}
+                  style={[
+                    styles.botonVolver,
+                    { backgroundColor: dark ? "#1e293b" : "#e2e8f0" },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.textoVolver,
+                      { color: dark ? "#e2e8f0" : "#0f172a" },
+                    ]}
+                  >
+                    ←
+                  </Text>
+                </TouchableOpacity>
+                <Text
+                  style={[
+                    styles.titulo,
+                    { color: dark ? "#f8fafc" : "#020617" },
+                  ]}
+                >
+                  Verificar correo
+                </Text>
+              </View>
+
+              <Text
+                style={[
+                  styles.label,
+                  { color: dark ? "#cbd5f5" : "#020617" },
+                ]}
+              >
+                Correo electrónico
+              </Text>
+
+              <TextInput
+                placeholder="usuario@datatools.com.co"
+                placeholderTextColor={dark ? "#94a3b8" : "#6b7280"}
+                value={correo}
+                onChangeText={(text) => {
+                  setCorreo(text);
+                  setErrores({});
+                }}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: dark ? "#020617" : "#e5e7eb",
+                    color: dark ? "#f8fafc" : "#020617",
+                    borderColor: dark ? "#334155" : "transparent",
+                    borderWidth: dark ? 1 : 0,
+                  },
+                  errores.correo && styles.inputError,
+                ]}
+              />
+
+              {errores.correo && (
+                <Text style={styles.errorText}>{errores.correo}</Text>
+              )}
+
+              <TouchableOpacity
+                style={styles.boton}
+                onPress={verificarCorreo}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.botonTexto}>Verificar correo</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+
+    </View>
   );
 };
 
@@ -242,12 +260,32 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     elevation: 2,
   },
+  encabezado: {
+    width: "100%",
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+
+  textoVolver: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  botonVolver: {
+    position: "absolute",
+    left: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
 
   titulo: {
-    fontSize: 22,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 20,
+    fontSize: 24,
+    fontWeight: "800",
+    marginTop: 10,
+    marginBottom: 10,
   },
 
   label: {
@@ -286,7 +324,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  /* BOTÓN SECUNDARIO */
   botonVerificar: {
     marginTop: 15,
     paddingVertical: 10,

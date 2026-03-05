@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
-  Dimensions,
   Image,
   SafeAreaView,
   ScrollView,
@@ -12,6 +11,7 @@ import {
   Text,
   TouchableOpacity,
   useColorScheme,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -24,24 +24,20 @@ import tipo_indicadores from "../../assets/img/tipo_indicadores.png";
 import tipo_operativo from "../../assets/img/tipo_operativo.png";
 import tipo_predictivo from "../../assets/img/tipo_predictivo.png";
 
-
 interface RouteParams {
   proyectoId: number;
-
 }
-
-const { width } = Dimensions.get("window");
-const CARD_WIDTH = Math.min(width - 40, 300);
-
 
 const TarjetaTipo = ({
   tipo,
   icono,
   onPress,
+  cardWidth,
 }: {
   tipo: string;
   icono: any;
   onPress: () => void;
+  cardWidth: number;
 }) => {
   const scaleAnim = useState(new Animated.Value(1))[0];
 
@@ -67,7 +63,10 @@ const TarjetaTipo = ({
         onPressIn={pressIn}
         onPressOut={pressOut}
         onPress={onPress}
-        style={styles.tarjeta}
+        style={[
+          styles.tarjeta,
+          { width: cardWidth, marginHorizontal: 8 },
+        ]}
       >
         <Image source={icono} style={styles.icono} />
         <Text style={styles.nombre}>{tipo}</Text>
@@ -76,65 +75,73 @@ const TarjetaTipo = ({
   );
 };
 
-
 const TiposDashboard: React.FC = () => {
+  const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute();
   const scheme = useColorScheme();
   const dark = scheme === "dark";
 
-  const {  proyectoId } = route.params as RouteParams;
+  const { proyectoId } = route.params as RouteParams;
 
   const [tipos, setTipos] = useState<string[]>([]);
   const [proyecto, setProyecto] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
-useEffect(() => {
-  const cargarDatos = async () => {
-    try {
-      const usuarioStr = await AsyncStorage.getItem("usuario");
-      const usuario = usuarioStr ? JSON.parse(usuarioStr) : null;
-      const usuarioId = usuario?.id;
+  // 🔹 CÁLCULO DINÁMICO DE COLUMNAS (CORRECCIÓN)
+  const HORIZONTAL_PADDING = 40;
+  const MIN_CARD_WIDTH = 260;
 
-      if (!usuarioId || !proyectoId) return;
+  const availableWidth = width - HORIZONTAL_PADDING;
+  const columnas = Math.max(1, Math.floor(availableWidth / MIN_CARD_WIDTH));
+  const CARD_WIDTH = availableWidth / columnas - 16;
 
-      const cacheKey = `tipos_${proyectoId}`;
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const usuarioStr = await AsyncStorage.getItem("usuario");
+        const usuario = usuarioStr ? JSON.parse(usuarioStr) : null;
+        const usuarioId = usuario?.id;
 
-      if (!proyecto) {
-        const resProy = await fetch(
-          `${URL}/proyectos_usuario/${usuarioId}`
+        if (!usuarioId || !proyectoId) return;
+
+        const cacheKey = `tipos_${proyectoId}`;
+
+        if (!proyecto) {
+          const resProy = await fetch(
+            `${URL}/proyectos_usuario/${usuarioId}`
+          );
+          const proyectos = await resProy.json();
+          const proy = proyectos.find(
+            (p: any) => String(p.id) === String(proyectoId)
+          );
+          setProyecto(proy ? proy.nombre_proyecto : "Proyecto");
+        }
+
+        const resTipos = await fetch(
+          `${URL}/tipos_dashboards/${proyectoId}/?usuario_id=${usuarioId}`
         );
-        const proyectos = await resProy.json();
-        const proy = proyectos.find(
-          (p: any) => String(p.id) === String(proyectoId)
-        );
-        setProyecto(proy ? proy.nombre_proyecto : "Proyecto");
+
+        const data = await resTipos.json();
+
+        if (resTipos.ok) {
+          setTipos(data.tipos || []);
+          await AsyncStorage.setItem(
+            cacheKey,
+            JSON.stringify(data.tipos || [])
+          );
+        }
+
+      } catch (error) {
+        console.error("Error cargando tipos:", error);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const resTipos = await fetch(
-        `${URL}/tipos_dashboards/${proyectoId}/?usuario_id=${usuarioId}`
-      );
-
-      const data = await resTipos.json();
-
-      if (resTipos.ok) {
-        setTipos(data.tipos || []);
-        await AsyncStorage.setItem(
-          cacheKey,
-          JSON.stringify(data.tipos || [])
-        );
-      }
-
-    } catch (error) {
-      console.error("Error cargando tipos:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  cargarDatos();
-}, [proyectoId]);
+    cargarDatos();
+  }, [proyectoId]);
 
   const abrirTipo = (tipo: string) => {
     navigation.navigate("Dashboards", { proyectoId, tipo });
@@ -147,8 +154,6 @@ useEffect(() => {
     if (t.includes("operativo")) return tipo_operativo;
     if (t.includes("agenda")) return tipo_agenda;
     if (t.includes("predictivo")) return tipo_predictivo;
-
-    
     return predeterminado;
   };
 
@@ -184,14 +189,35 @@ useEffect(() => {
       ]}
     >
       <View style={styles.cuerpo}>
-        <Text
-          style={[
-            styles.titulo,
-            { color: dark ? "#e5e7eb" : "#0f172a" },
-          ]}
-        >
-          Tipos de dashboards
-        </Text>
+
+        <View style={styles.encabezado}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+            style={[
+              styles.botonVolver,
+              { backgroundColor: dark ? "#1e293b" : "#e2e8f0" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.textoVolver,
+                { color: dark ? "#e2e8f0" : "#0f172a" },
+              ]}
+            >
+              ←
+            </Text>
+          </TouchableOpacity>
+
+          <Text
+            style={[
+              styles.titulo,
+              { color: dark ? "#e5e7eb" : "#0f172a" },
+            ]}
+          >
+            Tipos de dashboards
+          </Text>
+        </View>
 
         <Text
           style={[
@@ -206,7 +232,9 @@ useEffect(() => {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
-            alignItems: "center",
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "center",
             paddingBottom: insets.bottom + 80,
           }}
         >
@@ -217,6 +245,7 @@ useEffect(() => {
                 tipo={tipo}
                 icono={obtenerIcono(tipo)}
                 onPress={() => abrirTipo(tipo)}
+                cardWidth={CARD_WIDTH}
               />
             ))
           ) : (
@@ -232,36 +261,40 @@ useEffect(() => {
 
 export default TiposDashboard;
 
-
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-  },
-
-  cuerpo: {
-    flex: 1,
+  safe: { flex: 1 },
+  cuerpo: { flex: 1, alignItems: "center" },
+  encabezado: {
+    width: "100%",
+    height: 50,
+    justifyContent: "center",
     alignItems: "center",
+    marginBottom: 10,
   },
-
+  textoVolver: { fontSize: 14, fontWeight: "600" },
+  botonVolver: {
+    position: "absolute",
+    left: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
   titulo: {
     fontSize: 24,
     fontWeight: "800",
     marginTop: 10,
+    marginBottom: 10,
   },
-
   subtitulo: {
     fontSize: 14,
     marginTop: 6,
     marginBottom: 20,
   },
-
   proyecto: {
     fontWeight: "700",
     color: "#2563eb",
   },
-
   tarjeta: {
-    width: CARD_WIDTH,
     height: 180,
     backgroundColor: "#ffffff",
     borderRadius: 14,
@@ -275,21 +308,18 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
   },
-
   icono: {
     width: 80,
     height: 80,
     resizeMode: "contain",
   },
-
   nombre: {
     marginTop: 14,
     fontSize: 18,
     fontWeight: "700",
-    color: "#0f172a", 
+    color: "#0f172a",
     textAlign: "center",
   },
-
   loadingContainer: {
     flex: 1,
     justifyContent: "center",

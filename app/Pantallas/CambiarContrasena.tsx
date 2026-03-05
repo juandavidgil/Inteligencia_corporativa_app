@@ -3,10 +3,14 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   useColorScheme,
   View,
 } from "react-native";
@@ -149,7 +153,9 @@ const CambiarContraseña: React.FC = () => {
   };
 
   return (
-    <>
+    <View style={{ flex: 1, backgroundColor: dark ? "#0d0f1a" : "#e9e9e9" }}>
+
+      {/* MODAL — fuera del KeyboardAvoidingView */}
       {modalVisible && (
         <View style={styles.modalOverlay}>
           <Animated.View
@@ -165,124 +171,150 @@ const CambiarContraseña: React.FC = () => {
         </View>
       )}
 
-      <View
-        style={[
-          styles.contenedor,
-          { backgroundColor: dark ? "#0d0f1a" : "#e9e9e9" },
-        ]}
+      {/* PANTALLA PRINCIPAL */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: dark ? "#020617" : "#ffffff" },
-          ]}
-        >
-          <Text
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View
             style={[
-              styles.titulo,
-              { color: dark ? "#f8fafc" : "#020617" },
+              styles.contenedor,
+              { backgroundColor: dark ? "#0d0f1a" : "#e9e9e9" },
             ]}
           >
-            Cambiar Contraseña
-          </Text>
+            <View
+              style={[
+                styles.card,
+                { backgroundColor: dark ? "#020617" : "#ffffff" },
+              ]}
+            >
+              <View style={styles.encabezado}>
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
+                  activeOpacity={0.7}
+                  style={[
+                    styles.botonVolver,
+                    { backgroundColor: dark ? "#1e293b" : "#e2e8f0" },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.textoVolver,
+                      { color: dark ? "#e2e8f0" : "#0f172a" },
+                    ]}
+                  >
+                    ←
+                  </Text>
+                </TouchableOpacity>
+                <Text
+                  style={[
+                    styles.titulo,
+                    { color: dark ? "#f8fafc" : "#020617" },
+                  ]}
+                >
+                  Cambiar contraseña
+                </Text>
+              </View>
 
-          <Text style={[styles.label, { color: dark ? "#cbd5f5" : "#020617" }]}>
-            Contraseña actual
-          </Text>
-          <TextInput
-            secureTextEntry
-            placeholder="Contraseña actual"
-            placeholderTextColor={dark ? "#94a3b8" : "#6b7280"}
-            value={contraseñaActual}
-            onChangeText={setContraseñaActual}
-            style={[
-              styles.input,
-              {
-                backgroundColor: dark ? "#020617" : "#e5e7eb",
-                color: dark ? "#f8fafc" : "#020617",
-                borderColor: dark ? "#334155" : "transparent",
-                borderWidth: dark ? 1 : 0,
-              },
-              errores.contraseñaActual && styles.inputError,
-            ]}
-          />
-          {errores.contraseñaActual && (
-            <Text style={styles.errorText}>{errores.contraseñaActual}</Text>
-          )}
+              <Text style={[styles.label, { color: dark ? "#cbd5f5" : "#020617" }]}>
+                Contraseña actual
+              </Text>
+              <TextInput
+                secureTextEntry
+                placeholder="Contraseña actual"
+                placeholderTextColor={dark ? "#94a3b8" : "#6b7280"}
+                value={contraseñaActual}
+                onChangeText={setContraseñaActual}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: dark ? "#020617" : "#e5e7eb",
+                    color: dark ? "#f8fafc" : "#020617",
+                    borderColor: dark ? "#334155" : "transparent",
+                    borderWidth: dark ? 1 : 0,
+                  },
+                  errores.contraseñaActual && styles.inputError,
+                ]}
+              />
+              {errores.contraseñaActual && (
+                <Text style={styles.errorText}>{errores.contraseñaActual}</Text>
+              )}
 
-          <Text style={[styles.label, { color: dark ? "#cbd5f5" : "#020617" }]}>
-            Nueva contraseña
-          </Text>
-          <TextInput
-            secureTextEntry
-            placeholder="Nueva contraseña"
-            placeholderTextColor={dark ? "#94a3b8" : "#6b7280"}
-            value={nuevaContraseña}
-            onChangeText={(text) => {
-              setNuevaContraseña(text);
-              setPasswordValida(text ? verificarContraseña(text) : null);
-            }}
-            style={[
-              styles.input,
-              {
-                backgroundColor: dark ? "#020617" : "#e5e7eb",
-                color: dark ? "#f8fafc" : "#020617",
-                borderColor: dark ? "#334155" : "transparent",
-                borderWidth: dark ? 1 : 0,
-              },
-              (errores.nuevaContraseña || passwordValida === false) &&
-                styles.inputError,
-            ]}
-          />
+              <Text style={[styles.label, { color: dark ? "#cbd5f5" : "#020617" }]}>
+                Nueva contraseña
+              </Text>
+              <TextInput
+                secureTextEntry
+                placeholder="Nueva contraseña"
+                placeholderTextColor={dark ? "#94a3b8" : "#6b7280"}
+                value={nuevaContraseña}
+                onChangeText={(text) => {
+                  setNuevaContraseña(text);
+                  setPasswordValida(text ? verificarContraseña(text) : null);
+                }}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: dark ? "#020617" : "#e5e7eb",
+                    color: dark ? "#f8fafc" : "#020617",
+                    borderColor: dark ? "#334155" : "transparent",
+                    borderWidth: dark ? 1 : 0,
+                  },
+                  (errores.nuevaContraseña || passwordValida === false) &&
+                    styles.inputError,
+                ]}
+              />
+              {errores.nuevaContraseña && (
+                <Text style={styles.errorText}>{errores.nuevaContraseña}</Text>
+              )}
+              {passwordValida === true && (
+                <Text style={styles.successText}>Contraseña segura</Text>
+              )}
 
-          {errores.nuevaContraseña && (
-            <Text style={styles.errorText}>{errores.nuevaContraseña}</Text>
-          )}
+              <Text style={[styles.label, { color: dark ? "#cbd5f5" : "#020617" }]}>
+                Confirmar contraseña
+              </Text>
+              <TextInput
+                secureTextEntry
+                placeholder="Confirmar contraseña"
+                placeholderTextColor={dark ? "#94a3b8" : "#6b7280"}
+                value={confirmarContraseña}
+                onChangeText={setConfirmarContraseña}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: dark ? "#020617" : "#e5e7eb",
+                    color: dark ? "#f8fafc" : "#020617",
+                    borderColor: dark ? "#334155" : "transparent",
+                    borderWidth: dark ? 1 : 0,
+                  },
+                  errores.confirmarContraseña && styles.inputError,
+                ]}
+              />
+              {errores.confirmarContraseña && (
+                <Text style={styles.errorText}>
+                  {errores.confirmarContraseña}
+                </Text>
+              )}
 
-          {passwordValida === true && (
-            <Text style={styles.successText}>Contraseña segura</Text>
-          )}
+              <TouchableOpacity
+                style={styles.boton}
+                onPress={Cambiar}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.botonTexto}>Actualizar contraseña</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
 
-          <Text style={[styles.label, { color: dark ? "#cbd5f5" : "#020617" }]}>
-            Confirmar contraseña
-          </Text>
-          <TextInput
-            secureTextEntry
-            placeholder="Confirmar contraseña"
-            placeholderTextColor={dark ? "#94a3b8" : "#6b7280"}
-            value={confirmarContraseña}
-            onChangeText={setConfirmarContraseña}
-            style={[
-              styles.input,
-              {
-                backgroundColor: dark ? "#020617" : "#e5e7eb",
-                color: dark ? "#f8fafc" : "#020617",
-                borderColor: dark ? "#334155" : "transparent",
-                borderWidth: dark ? 1 : 0,
-              },
-              errores.confirmarContraseña && styles.inputError,
-            ]}
-          />
-          {errores.confirmarContraseña && (
-            <Text style={styles.errorText}>
-              {errores.confirmarContraseña}
-            </Text>
-          )}
-
-          <TouchableOpacity
-            style={styles.boton}
-            onPress={Cambiar}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.botonTexto}>Actualizar contraseña</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
-    </>
+    </View>
   );
 };
 
@@ -302,12 +334,32 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     elevation: 2,
   },
+  encabezado: {
+    width: "100%",
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+
+  textoVolver: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  botonVolver: {
+    position: "absolute",
+    left: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
 
   titulo: {
-    fontSize: 22,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 20,
+    fontSize: 24,
+    fontWeight: "800",
+    marginTop: 10,
+    marginBottom: 10,
   },
 
   label: {

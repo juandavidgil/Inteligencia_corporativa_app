@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
-  Dimensions,
   Image,
   SafeAreaView,
   ScrollView,
@@ -12,11 +11,11 @@ import {
   Text,
   TouchableOpacity,
   useColorScheme,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { URL } from "../config/URL";
-
 
 import agenda from "../../assets/img/agenda.png";
 import aranda from "../../assets/img/aranda.png";
@@ -41,18 +40,16 @@ interface RouteParams {
   tipo: string;
 }
 
-const { width } = Dimensions.get("window");
-const CARD_WIDTH = Math.min(width - 40, 300);
-
-
 const TarjetaDashboard = ({
   dashboard,
   icono,
   onPress,
+  cardWidth,
 }: {
   dashboard: DashboardItem;
   icono: any;
   onPress: () => void;
+  cardWidth: number;
 }) => {
   const scaleAnim = useState(new Animated.Value(1))[0];
 
@@ -78,7 +75,7 @@ const TarjetaDashboard = ({
         onPressIn={pressIn}
         onPressOut={pressOut}
         onPress={onPress}
-        style={styles.tarjeta}
+        style={[styles.tarjeta, { width: cardWidth, marginHorizontal:8 }]}
       >
         <Image source={icono} style={styles.icono} />
         <Text style={styles.nombre}>
@@ -91,6 +88,13 @@ const TarjetaDashboard = ({
 
 
 const DashBoard: React.FC = () => {
+  const { width, height } = useWindowDimensions();
+  const esLandscape = width > height;
+
+  const CARD_WIDTH = esLandscape
+    ? Math.min(width / 2 - 40, 350)
+    : Math.min(width - 40, 300);
+
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute();
@@ -114,6 +118,7 @@ const DashBoard: React.FC = () => {
 
         if (cache) {
           setDashboards(JSON.parse(cache));
+          setLoading(false);
           return;
         }
 
@@ -196,14 +201,34 @@ const DashBoard: React.FC = () => {
       ]}
     >
       <View style={styles.cuerpo}>
-        <Text
-          style={[
-            styles.titulo,
-            { color: dark ? "#e5e7eb" : "#0f172a" },
-          ]}
-        >
-          Dashboards
-        </Text>
+        <View style={styles.encabezado}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+            style={[
+              styles.botonVolver,
+              { backgroundColor: dark ? "#1e293b" : "#e2e8f0" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.textoVolver,
+                { color: dark ? "#e2e8f0" : "#0f172a" },
+              ]}
+            >
+              ←
+            </Text>
+          </TouchableOpacity>
+
+          <Text
+            style={[
+              styles.titulo,
+              { color: dark ? "#e5e7eb" : "#0f172a" },
+            ]}
+          >
+            Dashboards
+          </Text>
+        </View>
 
         <Text
           style={[
@@ -219,6 +244,9 @@ const DashBoard: React.FC = () => {
           contentContainerStyle={{
             alignItems: "center",
             paddingBottom: insets.bottom + 80,
+            flexDirection: esLandscape ? "row" : "column",
+            flexWrap: esLandscape ? "wrap" : "nowrap",
+            justifyContent: esLandscape ? "center" : "flex-start",
           }}
         >
           {dashboards.length > 0 ? (
@@ -227,6 +255,7 @@ const DashBoard: React.FC = () => {
                 key={dashboard.id}
                 dashboard={dashboard}
                 icono={obtenerIcono(dashboard.nombre_dashboard)}
+                cardWidth={CARD_WIDTH}
                 onPress={() => irTablero(dashboard)}
               />
             ))
@@ -254,10 +283,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
+  encabezado: {
+    width: "100%",
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+
+  textoVolver: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  botonVolver: {
+    position: "absolute",
+    left: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+
   titulo: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "800",
     marginTop: 10,
+    marginBottom: 10,
   },
 
   subtitulo: {
@@ -269,8 +320,7 @@ const styles = StyleSheet.create({
   },
 
   tarjeta: {
-    width: CARD_WIDTH,
-    height: 200,
+    height: 180,
     backgroundColor: "#ffffff",
     borderRadius: 14,
     padding: 20,
@@ -283,18 +333,17 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
   },
-
   icono: {
     width: 80,
     height: 80,
-    resizeMode: "contain", 
+    resizeMode: "contain",
   },
 
   nombre: {
     marginTop: 14,
     fontSize: 17,
     fontWeight: "700",
-    color: "#0f172a", 
+    color: "#0f172a",
     textAlign: "center",
   },
 

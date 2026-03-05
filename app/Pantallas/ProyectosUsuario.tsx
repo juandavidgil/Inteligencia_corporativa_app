@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
-  Dimensions,
   Image,
   SafeAreaView,
   ScrollView,
@@ -12,6 +11,7 @@ import {
   Text,
   TouchableOpacity,
   useColorScheme,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -33,18 +33,16 @@ interface Proyecto {
   tiene_carpeta: boolean;
 }
 
-const { width } = Dimensions.get("window");
-const CARD_WIDTH = Math.min(width - 40, 300);
-
-
 const TarjetaProyecto = ({
   proyecto,
   imagen,
   onPress,
+  cardWidth,
 }: {
   proyecto: Proyecto;
   imagen: any;
   onPress: () => void;
+  cardWidth: number;
 }) => {
   const scaleAnim = useState(new Animated.Value(1))[0];
 
@@ -70,7 +68,7 @@ const TarjetaProyecto = ({
         onPressIn={pressIn}
         onPressOut={pressOut}
         onPress={onPress}
-        style={styles.tarjeta}
+        style={[styles.tarjeta, { width: cardWidth, marginHorizontal: 8}]}
       >
         <Image source={imagen} style={styles.imagenTarjeta} />
         <Text style={styles.nombre}>
@@ -83,6 +81,13 @@ const TarjetaProyecto = ({
 
 
 const ProyectosUsuario: React.FC = () => {
+  const { width, height } = useWindowDimensions();
+  const esLandscape = width > height;
+
+  const CARD_WIDTH = esLandscape
+    ? Math.min(width / 2 - 40, 350)
+    : Math.min(width - 40, 300);
+
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const scheme = useColorScheme();
@@ -109,30 +114,17 @@ const ProyectosUsuario: React.FC = () => {
       console.log("usuario que inicia sesion ",usuario)
       if (!usuario?.id) return;
 
-/*       const cache = await AsyncStorage.getItem("proyectos_usuario");
-      if (cache) {
-        setProyectos(JSON.parse(cache));
-        return;
-      }
- */
-      const response = await fetch(`${URL}/proyectos_usuario/${usuario.id}/`
- 
-      );
+      const response = await fetch(`${URL}/proyectos_usuario/${usuario.id}/`);
       const data = await response.json();
       console.log("DATA DESDE APP:", JSON.stringify(data));
 
-
-
       if (response.ok) {
-
         setProyectos(data);
        
         await AsyncStorage.setItem(
           "proyectos_usuario",
           JSON.stringify(data)
         );
-       
-         
       }
     } catch (error) {
       console.error("Error cargando proyectos:", error);
@@ -211,6 +203,9 @@ const ProyectosUsuario: React.FC = () => {
           contentContainerStyle={{
             alignItems: "center",
             paddingBottom: insets.bottom + 100,
+            flexDirection: esLandscape ? "row" : "column",
+            flexWrap: esLandscape ? "wrap" : "nowrap",
+            justifyContent: esLandscape ? "center" : "flex-start",
           }}
         >
           {proyectos.length > 0 ? (
@@ -223,22 +218,20 @@ const ProyectosUsuario: React.FC = () => {
                   key={proyecto.id}
                   proyecto={proyecto}
                   imagen={imagen}
+                  cardWidth={CARD_WIDTH}
                   onPress={() => {
                     console.log("tiene_carpeta:", proyecto.tiene_carpeta);
          
                     if (proyecto.tiene_carpeta == true) {
                       navigation.navigate("Explorador",{
                         proyectoId: proyecto.id,
-                      } )
-                    }else {
+                      })
+                    } else {
                       navigation.navigate("Tipos", {
-                      proyectoId: proyecto.id,
-                    })
+                        proyectoId: proyecto.id,
+                      })
                     }
-                    }
-
-                
-                  }
+                  }}
                 />
               );
             })
@@ -288,9 +281,10 @@ const styles = StyleSheet.create({
   },
 
   titulo: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "800",
     marginTop: 10,
+    marginBottom: 10,
   },
 
   subtitulo: {
@@ -302,7 +296,6 @@ const styles = StyleSheet.create({
   },
 
   tarjeta: {
-    width: CARD_WIDTH,
     backgroundColor: "#ffffff",
     height: 200,
     borderRadius: 14,

@@ -4,13 +4,13 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
-  Dimensions,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   useColorScheme,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -35,17 +35,16 @@ interface Usuario {
   nombre: string;
 }
 
-const { width } = Dimensions.get("window");
-const CARD_WIDTH = Math.min(width - 40, 300);
-
 const TarjetaCarpeta = ({
   carpeta,
   onPress,
   dark,
+  cardWidth,
 }: {
   carpeta: Carpeta;
   onPress: () => void;
   dark: boolean;
+  cardWidth: number;
 }) => {
   const scaleAnim = useState(new Animated.Value(1))[0];
 
@@ -74,6 +73,7 @@ const TarjetaCarpeta = ({
         style={[
           styles.tarjeta,
           {
+            width: cardWidth, marginHorizontal: 8,
             backgroundColor: dark ? "#0f172a" : "#ffffff",
           },
         ]}
@@ -92,6 +92,13 @@ const TarjetaCarpeta = ({
 };
 
 const ExploradorProyecto: React.FC = () => {
+  const { width, height } = useWindowDimensions();
+  const esLandscape = width > height;
+
+  const CARD_WIDTH = esLandscape
+    ? Math.min(width / 2 - 40, 350)
+    : Math.min(width - 40, 300);
+
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute();
@@ -147,7 +154,8 @@ const ExploradorProyecto: React.FC = () => {
 
   const irCarpeta = (c: Carpeta) => {
     navigation.navigate("Carpeta", {
-      proyectoId: c.id,
+      carpetaId: c.id,
+      proyectoId,
       nombreCarpeta: c.nombre,
     });
   };
@@ -211,15 +219,34 @@ const ExploradorProyecto: React.FC = () => {
       ]}
     >
       <View style={styles.cuerpo}>
-        <Text
-          style={[
-            styles.titulo,
-            { color: dark ? "#e5e7eb" : "#0f172a" },
-          ]}
-        >
-          Carpetas del proyecto
-        </Text>
+        <View style={styles.encabezado}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+            style={[
+              styles.botonVolver,
+              { backgroundColor: dark ? "#1e293b" : "#e2e8f0" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.textoVolver,
+                { color: dark ? "#e2e8f0" : "#0f172a" },
+              ]}
+            >
+              ←
+            </Text>
+          </TouchableOpacity>
 
+          <Text
+            style={[
+              styles.titulo,
+              { color: dark ? "#e5e7eb" : "#0f172a" },
+            ]}
+          >
+            Carpetas del proyecto
+          </Text>
+        </View>
 
         <Text
           style={[
@@ -238,6 +265,9 @@ const ExploradorProyecto: React.FC = () => {
           contentContainerStyle={{
             alignItems: "center",
             paddingBottom: insets.bottom + 80,
+            flexDirection: esLandscape ? "row" : "column",
+            flexWrap: esLandscape ? "wrap" : "nowrap",
+            justifyContent: esLandscape ? "center" : "flex-start",
           }}
         >
           {estructura.carpetas.length > 0 ? (
@@ -246,6 +276,7 @@ const ExploradorProyecto: React.FC = () => {
                 key={c.id}
                 carpeta={c}
                 dark={dark}
+                cardWidth={CARD_WIDTH}
                 onPress={() => irCarpeta(c)}
               />
             ))
@@ -277,10 +308,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
+  encabezado: {
+    width: "100%",
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+
+  textoVolver: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  botonVolver: {
+    position: "absolute",
+    left: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+
   titulo: {
     fontSize: 24,
     fontWeight: "800",
     marginTop: 10,
+    marginBottom: 10,
   },
 
   subtitulo: {
@@ -288,14 +341,13 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginBottom: 20,
   },
+
   proyecto: {
     fontWeight: "700",
     color: "#2563eb",
-
   },
 
   tarjeta: {
-    width: CARD_WIDTH,
     height: 130,
     borderRadius: 14,
     padding: 20,
