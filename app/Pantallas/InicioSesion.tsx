@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
@@ -46,6 +47,7 @@ const InicioDeSesion: React.FC = () => {
 
   const [nombreUsuario, setNombreUsuario] = useState("");
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
+  const [mostrarPassword, setMostrarPassword] = useState(false);
 
   const validarCorreo = (correo: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
@@ -269,17 +271,30 @@ const InicioDeSesion: React.FC = () => {
                   Contraseña
                 </Text>
 
-                <TextInput
-                  style={[
-                    styles.input,
-                    errorPassword ? styles.inputError : null,
-                  ]}
-                  placeholder="Ingrese su contraseña"
-                  placeholderTextColor="#6b7280"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      styles.inputConIcono,
+                      errorPassword ? styles.inputError : null,
+                    ]}
+                    placeholder="Ingrese su contraseña"
+                    placeholderTextColor="#6b7280"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!mostrarPassword}
+                  />
+                  <TouchableOpacity
+                    style={styles.ojito}
+                    onPress={() => setMostrarPassword(!mostrarPassword)}
+                  >
+                     <Ionicons
+    name={mostrarPassword ? "eye-off-outline" : "eye-outline"}
+    size={20}
+    color="#6b7280"
+  />
+                  </TouchableOpacity>
+                </View>
 
                 {errorPassword !== "" && (
                   <Text style={styles.errorText}>{errorPassword}</Text>
@@ -485,4 +500,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#374151",
   },
+
+  inputWrapper: {
+    position: "relative",
+    justifyContent: "center",
+  },
+  inputConIcono: {
+    paddingRight: 45,
+  },
+  ojito: {
+    position: "absolute",
+    right: 12,
+    height: "100%",
+    justifyContent: "center",
+  }
 });

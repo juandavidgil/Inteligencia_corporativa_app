@@ -1,34 +1,25 @@
 {
   "cli": {
-    "version": ">= 16.28.0",
-    "appVersionSource": "remote"
+    "version": ">= 18.4.0"
   },
   "build": {
-    "ios-production": {
-      "distribution": "app-store",
-      "autoIncrement": true,
-      "releaseChannel": "production",
-      "workflow": "managed"
-    },
-    "android-local": {
-      "distribution": "internal",
-      "workflow": "generic"
-    },
     "development": {
-      "distribution": "internal",
       "developmentClient": true,
-      "workflow": "managed"
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "ios": {
+        "distribution": "store"
+      },
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {
-    "production": {
-      "ios": {
-        "appleId": "TU_APPLE_ID",
-        "ascAppId": "TU_APP_ID"
-      },
-      "android": {
-        "track": "internal"
-      }
-    }
+    "production": {}
   }
 }
