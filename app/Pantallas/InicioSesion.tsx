@@ -288,11 +288,11 @@ const InicioDeSesion: React.FC = () => {
                     style={styles.ojito}
                     onPress={() => setMostrarPassword(!mostrarPassword)}
                   >
-                     <Ionicons
-    name={mostrarPassword ? "eye-off-outline" : "eye-outline"}
-    size={20}
-    color="#6b7280"
-  />
+                    <Ionicons
+                      name={mostrarPassword ? "eye-off-outline" : "eye-outline"}
+                      size={20}
+                      color="#6b7280"
+                    />
                   </TouchableOpacity>
                 </View>
 
@@ -320,10 +320,13 @@ const InicioDeSesion: React.FC = () => {
                   style={styles.botonVerificar}
                   onPress={() => navigation.navigate("VerificarCorreo")}
                 >
-                  <Text style={styles.botonVerificarTexto}>
-                    Cambiar contraseña
-                  </Text>
+                  <Ionicons name="lock-closed-outline" size={14} color="#2563eb" />
+                  <Text style={styles.botonVerificarTexto}>Olvidé mi contraseña</Text>
                 </TouchableOpacity>
+                <Text style={styles.slogan}>
+                  "Producto No Para"
+                </Text>
+
               </View>
             </View>
           </ScrollView>
@@ -448,8 +451,19 @@ const styles = StyleSheet.create({
     marginTop: 25,
   },
   botonTexto: { color: "#fff", textAlign: "center", fontWeight: "600" },
-  botonVerificar: { marginTop: 15, alignItems: "center" },
-  botonVerificarTexto: { color: "#2563eb", fontWeight: "600" },
+  botonVerificar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    marginTop: 15,
+    paddingVertical: 8,
+  },
+  botonVerificarTexto: {
+    color: "#2563eb",
+    fontWeight: "600",
+    fontSize: 14,
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
@@ -513,5 +527,14 @@ const styles = StyleSheet.create({
     right: 12,
     height: "100%",
     justifyContent: "center",
+  },
+  slogan: {
+    textAlign: "center",
+    fontSize: 12,
+    color: "#6b7280",
+    marginTop: 20,
+    fontStyle: "italic",
+    letterSpacing: 0.5,
+    opacity: 0.8,
   }
 });
