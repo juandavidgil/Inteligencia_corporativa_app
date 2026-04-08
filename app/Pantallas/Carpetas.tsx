@@ -166,9 +166,9 @@ const Carpeta: React.FC = () => {
     );
   }
 
-  
+  const noHayCarpetas = contenido?.carpetas?.length === 0;
   const noHayDashboards = contenido?.dashboards?.length === 0;
-  const noHayNada = noHayDashboards;
+  const noHayNada = noHayCarpetas && noHayDashboards;
 
   return (
     <SafeAreaView
@@ -251,11 +251,7 @@ const Carpeta: React.FC = () => {
             />
           ))}
 
-          {noHayDashboards && !noHayNada && (
-            <Text style={styles.emptyText}>
-              No hay dashboards disponibles.
-            </Text>
-          )}
+
         </ScrollView>
       </View>
     </SafeAreaView>
