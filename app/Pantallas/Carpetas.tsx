@@ -166,9 +166,9 @@ const Carpeta: React.FC = () => {
     );
   }
 
-  const noHayCarpetas = contenido?.carpetas?.length === 0;
+  
   const noHayDashboards = contenido?.dashboards?.length === 0;
-  const noHayNada = noHayCarpetas && noHayDashboards;
+  const noHayNada = noHayDashboards;
 
   return (
     <SafeAreaView
@@ -237,11 +237,7 @@ const Carpeta: React.FC = () => {
             />
           ))}
 
-          {noHayCarpetas && !noHayNada && (
-            <Text style={styles.emptyText}>
-              No hay carpetas disponibles.
-            </Text>
-          )}
+
 
           {/* DASHBOARDS */}
           {contenido?.dashboards.map((dashboard) => (

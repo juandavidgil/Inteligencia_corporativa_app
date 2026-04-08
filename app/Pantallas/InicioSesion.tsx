@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -32,7 +32,8 @@ const InicioDeSesion: React.FC = () => {
   const dark = scheme === "dark";
   const { width, height } = useWindowDimensions();
   const esLandscape = width > height;
-
+  const [ratio, setRatio] = useState(1);
+  const source = require("../../assets/img/data.png");
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
 
@@ -48,6 +49,12 @@ const InicioDeSesion: React.FC = () => {
   const [nombreUsuario, setNombreUsuario] = useState("");
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
+
+
+  useEffect(() => {
+    const { width, height } = Image.resolveAssetSource(source);
+    setRatio(width / height);
+  }, []);
 
   const validarCorreo = (correo: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
@@ -226,10 +233,11 @@ const InicioDeSesion: React.FC = () => {
             >
               {/* IZQUIERDA */}
               <View style={esLandscape ? styles.leftSide : undefined}>
-                <View style={styles.imgContainer}>
+                <View style={[styles.imgContainer, { aspectRatio: ratio }]}>
                   <Image
-                    source={require("../../assets/img/datatools.jpg")}
-                    style={styles.img}
+                    source={source}
+                    style={{ width: "100%", height: "100%" }}
+                    resizeMode="cover"
                   />
                 </View>
               </View>
@@ -427,7 +435,6 @@ const styles = StyleSheet.create({
   card: { padding: 25, borderRadius: 15 },
   imgContainer: {
     width: "60%",
-    height: 160,
     borderRadius: 15,
     overflow: "hidden",
     alignSelf: "center",
@@ -436,10 +443,9 @@ const styles = StyleSheet.create({
   img: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   titulo: { fontSize: 24, fontWeight: "700", textAlign: "center", margin: 20 },
-  label: { marginTop: 15 },
+  label: { marginTop: 15, marginBottom: 5 },
   input: { backgroundColor: "#e5e7eb", padding: 12, borderRadius: 10 },
   inputError: { borderWidth: 1, borderColor: "#dc2626" },
   errorText: { color: "#dc2626", fontSize: 12 },
