@@ -15,18 +15,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import agenda from "../../assets/img/agenda.png";
-import aranda from "../../assets/img/aranda.png";
-import conciliacion from "../../assets/img/consignacion.png";
-import consulta from "../../assets/img/consulta.png";
-import financiero from "../../assets/img/financiero.png";
-import indicadores from "../../assets/img/indicadores.png";
-import multa from "../../assets/img/multa.png";
-import operativo from "../../assets/img/operativo.png";
 import predeterminado from "../../assets/img/predeterminado.png";
-import predictivo from "../../assets/img/predictivo.png";
-import recaudo from "../../assets/img/recaudo.png";
 
 import { URL } from "../config/URL";
 
@@ -49,6 +38,7 @@ interface CarpetaItem {
 interface DashboardItem {
   id: number;
   nombre_dashboard: string;
+  imagen_url: string;
 }
 
 interface Contenido {
@@ -100,7 +90,6 @@ const Carpeta: React.FC = () => {
           `${URL}/contenido_carpeta/${carpetaId}/${usuario.id}`
         );
         const data = await response.json();
-
         if (response.ok) {
           setContenido(data);
         }
@@ -114,20 +103,6 @@ const Carpeta: React.FC = () => {
     cargarContenido();
   }, [carpetaId, usuario?.id]);
 
-  const obtenerIcono = (nombre: string) => {
-    const n = nombre.toLowerCase();
-    if (n.includes("financiero")) return financiero;
-    if (n.includes("indicadores")) return indicadores;
-    if (n.includes("operativo")) return operativo;
-    if (n.includes("agenda")) return agenda;
-    if (n.includes("aranda")) return aranda;
-    if (n.includes("multa")) return multa;
-    if (n.includes("conciliación cartera")) return conciliacion;
-    if (n.includes("recaudo")) return recaudo;
-    if (n.includes("consulta")) return consulta;
-    if (n.includes("predictivo")) return predictivo;
-    return predeterminado;
-  };
 
   const irTablero = (dashboard: DashboardItem) => {
     navigation.navigate("Tableros", {
@@ -138,7 +113,7 @@ const Carpeta: React.FC = () => {
   };
 
   const irCarpeta = (c: CarpetaItem) => {
-    navigation.navigate("Carpeta", {
+    navigation.push("Carpeta", {
       proyectoId,
       nombreCarpeta: c.nombre,
       carpetaId: c.id,
@@ -181,34 +156,32 @@ const Carpeta: React.FC = () => {
       ]}
     >
       <View style={styles.cuerpo}>
-        <View style={styles.encabezado}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-            style={[
-              styles.botonVolver,
-              { backgroundColor: dark ? "#1e293b" : "#e2e8f0" },
-            ]}
-          >
-            <Text
-              style={[
-                styles.textoVolver,
-                { color: dark ? "#e2e8f0" : "#0f172a" },
-              ]}
-            >
-              ←
-            </Text>
-          </TouchableOpacity>
+<View style={styles.encabezado}>
+  <TouchableOpacity
+    onPress={() => navigation.goBack()}
+    activeOpacity={0.7}
+    style={[
+      styles.botonVolver,
+      { backgroundColor: dark ? "#1e293b" : "#e2e8f0" },
+    ]}
+  >
+    <Text style={[styles.textoVolver, { color: dark ? "#e2e8f0" : "#0f172a" }]}>
+      ←
+    </Text>
+  </TouchableOpacity>
 
-          <Text
-            style={[
-              styles.titulo,
-              { color: dark ? "#e5e7eb" : "#0f172a" },
-            ]}
-          >
-            {nombreCarpeta || "Contenido"}
-          </Text>
-        </View>
+  <Text
+    style={[
+      styles.titulo,
+      { color: dark ? "#e5e7eb" : "#0f172a" },
+    ]}
+    numberOfLines={2}         // ← permite hasta 2 líneas
+    adjustsFontSizeToFit      // ← achica la fuente si no cabe
+    minimumFontScale={0.7}    // ← no baja del 70% del tamaño original
+  >
+    {nombreCarpeta || "Contenido"}
+  </Text>
+</View>
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -240,16 +213,17 @@ const Carpeta: React.FC = () => {
 
 
           {/* DASHBOARDS */}
-          {contenido?.dashboards.map((dashboard) => (
-            <TarjetaDashboard
-              key={dashboard.id}
-              nombre={dashboard.nombre_dashboard}
-              icono={obtenerIcono(dashboard.nombre_dashboard)}
-              dark={dark}
-              width={CARD_WIDTH}
-              onPress={() => irTablero(dashboard)}
-            />
-          ))}
+
+{contenido?.dashboards.map((dashboard) => (
+    <TarjetaDashboard
+        key={dashboard.id}
+        nombre={dashboard.nombre_dashboard}
+        icono={dashboard.imagen_url ?? null}  l
+        dark={dark}
+        width={CARD_WIDTH}
+        onPress={() => irTablero(dashboard)}
+    />
+))}
 
 
         </ScrollView>
@@ -298,56 +272,60 @@ const TarjetaSimple = ({ texto, onPress, dark, width }: any) => {
   );
 };
 
-const TarjetaDashboard = ({ nombre, icono, onPress, dark, width }: any) => {
-  const scaleAnim = useState(new Animated.Value(1))[0];
 
-  return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }], margin: 10 }}>
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPressIn={() =>
-          Animated.spring(scaleAnim, {
-            toValue: 0.95,
-            useNativeDriver: true,
-          }).start()
-        }
-        onPressOut={() =>
-          Animated.spring(scaleAnim, {
-            toValue: 1,
-            friction: 6,
-            useNativeDriver: true,
-          }).start()
-        }
-        onPress={onPress}
-        style={[
-          styles.tarjetaTipoDashboard,
-          { backgroundColor: dark ? "#0f172a" : "#ffffff", width },
-        ]}
-      >
-        <Image source={icono} style={styles.iconoGrande} />
-        <Text
-          style={[
-            styles.nombreGrande,
-            { color: dark ? "#e2e8f0" : "#0f172a" },
-          ]}
-        >
-          {nombre}
-        </Text>
-      </TouchableOpacity>
-    </Animated.View>
-  );
+const TarjetaDashboard = ({ nombre, icono, onPress, dark, width }: any) => {
+    const scaleAnim = useState(new Animated.Value(1))[0];
+
+    return (
+        <Animated.View style={{ transform: [{ scale: scaleAnim }], margin: 10 }}>
+            <TouchableOpacity
+                activeOpacity={0.9}
+                onPressIn={() =>
+                    Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true }).start()
+                }
+                onPressOut={() =>
+                    Animated.spring(scaleAnim, { toValue: 1, friction: 6, useNativeDriver: true }).start()
+                }
+                onPress={onPress}
+                style={[
+                    styles.tarjetaTipoDashboard,
+                    { backgroundColor: dark ? "#0f172a" : "#ffffff", width },
+                ]}
+            >
+                <Image
+                    source={
+                        typeof icono === 'string' && icono.length > 0
+                            ? { uri: icono }    
+                            : predeterminado      
+                    }
+                    style={styles.iconoGrande}
+                    defaultSource={predeterminado} 
+                />
+                <Text style={[styles.nombreGrande, { color: dark ? "#e2e8f0" : "#0f172a" }]}>
+                    {nombre}
+                </Text>
+            </TouchableOpacity>
+        </Animated.View>
+    );
 };
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   cuerpo: { flex: 1, alignItems: "center" },
-  encabezado: {
-    width: "100%",
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-  },
+encabezado: {
+  width: "100%",
+  minHeight: 50,        // ← minHeight en vez de height fijo para permitir 2 líneas
+  justifyContent: "center",
+  alignItems: "center",
+  marginBottom: 10,
+  paddingHorizontal: 70, // ← espacio a ambos lados para no tapar la flecha (botón ocupa ~60px)
+},
+titulo: {
+  fontSize: 24,
+  fontWeight: "800",
+  marginTop: 10,
+  textAlign: "center",  // ← centra el texto dentro del espacio disponible
+},
   botonVolver: {
     position: "absolute",
     left: 20,
@@ -359,11 +337,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-  titulo: {
-    fontSize: 24,
-    fontWeight: "800",
-    marginTop: 10,
-  },
+
   tarjetaSimple: {
     height: 110,
     borderRadius: 14,

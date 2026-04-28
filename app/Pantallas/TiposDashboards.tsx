@@ -17,25 +17,23 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { URL } from "../config/URL";
 
-import predeterminado from "../../assets/img/predeterminado.png";
-import tipo_agenda from "../../assets/img/tipo_agenda.png";
-import tipo_financiero from "../../assets/img/tipo_financiero.png";
-import tipo_indicadores from "../../assets/img/tipo_indicadores.png";
-import tipo_operativo from "../../assets/img/tipo_operativo.png";
-import tipo_predictivo from "../../assets/img/tipo_predictivo.png";
 
 interface RouteParams {
   proyectoId: number;
 }
 
+interface Tipo {
+  id: number;
+  nombre: string;
+  tipo_url: string;
+}
+
 const TarjetaTipo = ({
   tipo,
-  icono,
   onPress,
   cardWidth,
 }: {
-  tipo: string;
-  icono: any;
+  tipo : Tipo;
   onPress: () => void;
   cardWidth: number;
 }) => {
@@ -68,8 +66,13 @@ const TarjetaTipo = ({
           { width: cardWidth, marginHorizontal: 8 },
         ]}
       >
-        <Image source={icono} style={styles.icono} />
-        <Text style={styles.nombre}>{tipo}</Text>
+        <Image
+          source={ {uri: tipo.tipo_url} }
+          style={styles.icono} 
+        />
+         
+         
+        <Text style={styles.nombre}>{tipo.nombre}</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -85,11 +88,12 @@ const TiposDashboard: React.FC = () => {
 
   const { proyectoId } = route.params as RouteParams;
 
-  const [tipos, setTipos] = useState<string[]>([]);
+  const [tipos, setTipos] = useState<Tipo[]>([]);
   const [proyecto, setProyecto] = useState<string>("");
+
   const [loading, setLoading] = useState<boolean>(true);
 
-  // 🔹 CÁLCULO DINÁMICO DE COLUMNAS (CORRECCIÓN)
+
   const HORIZONTAL_PADDING = 40;
   const MIN_CARD_WIDTH = 260;
 
@@ -143,19 +147,11 @@ const TiposDashboard: React.FC = () => {
     cargarDatos();
   }, [proyectoId]);
 
-  const abrirTipo = (tipo: string) => {
-    navigation.navigate("Dashboards", { proyectoId, tipo });
-  };
+const abrirTipo = (tipoId: number) => {
+  navigation.navigate("Dashboards", { proyectoId, tipo: tipoId });
+};
 
-  const obtenerIcono = (tipo: string) => {
-    const t = tipo.toLowerCase();
-    if (t.includes("financiero")) return tipo_financiero;
-    if (t.includes("indicadores")) return tipo_indicadores;
-    if (t.includes("operativo")) return tipo_operativo;
-    if (t.includes("agenda")) return tipo_agenda;
-    if (t.includes("predictivo")) return tipo_predictivo;
-    return predeterminado;
-  };
+
 
   if (loading) {
     return (
@@ -241,10 +237,10 @@ const TiposDashboard: React.FC = () => {
           {tipos.length > 0 ? (
             tipos.map((tipo) => (
               <TarjetaTipo
-                key={tipo}
+                key={tipo.id}
                 tipo={tipo}
-                icono={obtenerIcono(tipo)}
-                onPress={() => abrirTipo(tipo)}
+                
+                onPress={() => abrirTipo(tipo.id)}
                 cardWidth={CARD_WIDTH}
               />
             ))

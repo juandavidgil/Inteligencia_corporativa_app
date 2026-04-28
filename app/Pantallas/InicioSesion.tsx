@@ -59,6 +59,25 @@ const InicioDeSesion: React.FC = () => {
   const validarCorreo = (correo: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
 
+  const registrar  = async (usuarioId: Number) => {
+    try {
+      const response = await fetch (`${URL}/registrar-ingreso/`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          usuario_id: usuarioId,
+          plataforma: Platform.OS || "Web"
+        })
+      })
+
+      if(!response.ok) {
+        console.log("no se pudo hacer el registro de ingreso")
+      }
+    } catch (error){
+      console.log("Error en el servidor", error)
+    }
+  }
+
   const ingresar = async () => {
     setErrorCorreo("");
     setErrorPassword("");
@@ -100,14 +119,16 @@ const InicioDeSesion: React.FC = () => {
       await AsyncStorage.setItem("usuario", JSON.stringify(data.usuario));
       await AsyncStorage.setItem("access_token", data.access);
       await AsyncStorage.setItem("refresh_token", data.refresh);
-
+      
       if (data.acepto_terminos) {
-        await cargarProyectos(data.usuario.id);
+        await cargarProyectos(data.usuario.id)
         setNombreUsuario(data.usuario.nombre);
         setModalBienvenida(true);
+        
       } else {
         setModalTerminosVisible(true);
       }
+      registrar(data.usuario.id);
     } catch (error) {
       console.error("Error en login:", error);
       setErrorGeneral("Error al conectar con el servidor");
@@ -188,7 +209,7 @@ const InicioDeSesion: React.FC = () => {
         },
         body: JSON.stringify({
           version: TERMS_VERSION,
-          plataforma: Platform.OS,
+          plataforma: Platform.OS || "Web" ,
         }),
       });
 

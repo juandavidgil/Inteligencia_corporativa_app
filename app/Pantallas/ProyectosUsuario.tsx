@@ -15,15 +15,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import Cartagena from "../../assets/img/cartagena.png";
-import Chia from "../../assets/img/chia.png";
-import Data from "../../assets/img/datatools.jpg";
-import ATM from "../../assets/img/logo_atm.png";
-import MOVIDIC from "../../assets/img/movidic.png";
-import Neiva from "../../assets/img/neiva.jpg";
-import Silvania from "../../assets/img/silvania.jpg";
-import VUS from "../../assets/img/vus.png";
+import predeterminado from "../../assets/img/datatools.jpg";
 import { URL } from "../config/URL";
 
 
@@ -31,16 +23,15 @@ interface Proyecto {
   id: number;
   nombre_proyecto: string;
   tiene_carpeta: boolean;
+  logo: string;
 }
 
 const TarjetaProyecto = ({
   proyecto,
-  imagen,
   onPress,
   cardWidth,
 }: {
   proyecto: Proyecto;
-  imagen: any;
   onPress: () => void;
   cardWidth: number;
 }) => {
@@ -70,7 +61,14 @@ const TarjetaProyecto = ({
         onPress={onPress}
         style={[styles.tarjeta, { width: cardWidth, marginHorizontal: 8}]}
       >
-        <Image source={imagen} style={styles.imagenTarjeta} />
+        <Image 
+          source={
+            typeof proyecto.logo ==='string' && proyecto.logo.length > 0
+            ? {uri : proyecto.logo}
+            : predeterminado
+          }
+            style={styles.imagenTarjeta}
+        />
         <Text style={styles.nombre}>
           {proyecto.nombre_proyecto}
         </Text>
@@ -96,27 +94,19 @@ const ProyectosUsuario: React.FC = () => {
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const imagenesProyectos: Record<string, any> = {
-    Guayaquil: ATM,
-    VUS: VUS,
-    MOVIDIC: MOVIDIC,
-    Chía: Chia,
-    Silvania: Silvania,
-    Neiva: Neiva,
-    Cartagena: Cartagena,
-    Data: Data,
-  };
+
+
+
+
 
   const cargarProyectos = async () => {
     try {
       const usuarioString = await AsyncStorage.getItem("usuario");
       const usuario = usuarioString ? JSON.parse(usuarioString) : null;
-      console.log("usuario que inicia sesion ",usuario)
       if (!usuario?.id) return;
 
       const response = await fetch(`${URL}/proyectos_usuario/${usuario.id}/`);
       const data = await response.json();
-      console.log("DATA DESDE APP:", JSON.stringify(data));
 
       if (response.ok) {
         setProyectos(data);
@@ -140,7 +130,6 @@ const ProyectosUsuario: React.FC = () => {
 
   useEffect(() => {
     cargarProyectos();
-    console.log("URL ACTUAL:", URL);
   }, []);
 
   if (loading) {
@@ -210,17 +199,14 @@ const ProyectosUsuario: React.FC = () => {
         >
           {proyectos.length > 0 ? (
             proyectos.map((proyecto) => {
-              const imagen =
-                imagenesProyectos[proyecto.nombre_proyecto] || Data;
 
               return (
                 <TarjetaProyecto
                   key={proyecto.id}
                   proyecto={proyecto}
-                  imagen={imagen}
+         
                   cardWidth={CARD_WIDTH}
                   onPress={() => {
-                    console.log("tiene_carpeta:", proyecto.tiene_carpeta);
          
                     if (proyecto.tiene_carpeta == true) {
                       navigation.navigate("Explorador",{

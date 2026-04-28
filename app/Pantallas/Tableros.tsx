@@ -83,7 +83,7 @@ const Tableros: React.FC = () => {
     <SafeAreaView
       style={[
         styles.safe,
-        { 
+        {
           paddingTop: insets.top,
           paddingBottom: insets.bottom,
           backgroundColor: dark ? "#020617" : "#f1f5f9",
@@ -91,37 +91,41 @@ const Tableros: React.FC = () => {
       ]}
     >
       <View style={styles.container}>
-                <View style={styles.encabezado}>
-                  <TouchableOpacity
-                    onPress={() => navigation.goBack()}
-                    activeOpacity={0.7}
-                    style={[
-                      styles.botonVolver,
-                      { backgroundColor: dark ? "#1e293b" : "#e2e8f0" },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.textoVolver,
-                        { color: dark ? "#e2e8f0" : "#0f172a" },
-                      ]}
-                    >
-                      ←
-                    </Text>
-                  </TouchableOpacity>
-        
-        <Text
-          style={[
-            styles.titulo,
-            { color: dark ? "#f8fafc" : "#0f172a" },
-          ]}
-        >
-          {nombreDashboard ||
-            currentDashboard?.nombre_dashboard ||
-            "Dashboard"}
-        </Text>
-        
-                </View>
+        <View style={styles.encabezado}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+            style={[
+              styles.botonVolver,
+              { backgroundColor: dark ? "#1e293b" : "#e2e8f0" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.textoVolver,
+                { color: dark ? "#e2e8f0" : "#0f172a" },
+              ]}
+            >
+              ←
+            </Text>
+          </TouchableOpacity>
+
+
+          <Text
+            style={[
+              styles.titulo,
+              { color: dark ? "#f8fafc" : "#0f172a" },
+            ]}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
+            {nombreDashboard ||
+              currentDashboard?.nombre_dashboard ||
+              "Dashboard"}
+          </Text>
+
+        </View>
 
 
         {loading && (
@@ -231,32 +235,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 
-encabezado: {
-  width: "100%",
-  height: 50,
-  justifyContent: "center",
-  alignItems: "center",
-  marginBottom: 10,
-},
-textoVolver: {
-  fontSize: 14,
-  fontWeight: "600",
-},
-
-botonVolver: {
-  position: "absolute",
-  left: 20,
-  paddingVertical: 6,
-  paddingHorizontal: 12,
-  borderRadius: 8,
-},
-
+  encabezado: {
+    width: "100%",
+    minHeight: 50,        
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+    paddingHorizontal: 70, 
+  },
   titulo: {
     fontSize: 24,
     fontWeight: "800",
     marginTop: 10,
     marginBottom: 10,
+    textAlign: "center",  
   },
+  textoVolver: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  botonVolver: {
+    position: "absolute",
+    left: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+
+
 
   center: {
     flex: 1,

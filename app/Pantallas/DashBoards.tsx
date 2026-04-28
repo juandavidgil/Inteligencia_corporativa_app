@@ -15,24 +15,16 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import predeterminado from "../../assets/img/predeterminado.png";
 import { URL } from "../config/URL";
 
-import agenda from "../../assets/img/agenda.png";
-import aranda from "../../assets/img/aranda.png";
-import conciliacion from "../../assets/img/consignacion.png";
-import consulta from "../../assets/img/consulta.png";
-import financiero from "../../assets/img/financiero.png";
-import indicadores from "../../assets/img/indicadores.png";
-import multa from "../../assets/img/multa.png";
-import operativo from "../../assets/img/operativo.png";
-import predeterminado from "../../assets/img/predeterminado.png";
-import predictivo from "../../assets/img/predictivo.png";
-import recaudo from "../../assets/img/recaudo.png";
+
 
 interface DashboardItem {
   id: number;
   nombre_dashboard: string;
   embed_url?: string;
+  imagen_url: string;
 }
 
 interface RouteParams {
@@ -77,7 +69,16 @@ const TarjetaDashboard = ({
         onPress={onPress}
         style={[styles.tarjeta, { width: cardWidth, marginHorizontal:8 }]}
       >
-        <Image source={icono} style={styles.icono} />
+        <Image 
+          source={
+            typeof dashboard.imagen_url === 'string' && dashboard.imagen_url.length > 0 
+            ? { uri : dashboard.imagen_url}
+            : predeterminado
+          }
+          style={styles.icono} 
+          
+        />
+          
         <Text style={styles.nombre}>
           {dashboard.nombre_dashboard}
         </Text>
@@ -106,44 +107,42 @@ const DashBoard: React.FC = () => {
   const [dashboards, setDashboards] = useState<DashboardItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const cargarDashboards = async () => {
-      try {
-        const usuarioStr = await AsyncStorage.getItem("usuario");
-        const usuario = usuarioStr ? JSON.parse(usuarioStr) : null;
-        if (!usuario || !proyectoId) return;
+useEffect(() => {
+  const cargarDashboards = async () => {
+    try {
+      const usuarioStr = await AsyncStorage.getItem("usuario");
+      const usuario = usuarioStr ? JSON.parse(usuarioStr) : null;
+      if (!usuario || !proyectoId) return;
 
-        const cacheKey = `dashboards_${proyectoId}_${tipo}`;
-        const cache = await AsyncStorage.getItem(cacheKey);
+      const cacheKey = `dashboards_${proyectoId}_${tipo}`;
+      const cache = await AsyncStorage.getItem(cacheKey);
 
-        if (cache) {
-          setDashboards(JSON.parse(cache));
-          setLoading(false);
-          return;
-        }
-
-        const res = await fetch(
-          `${URL}/dashboards_con_embed/${proyectoId}/?usuario_id=${usuario.id}&tipo=${tipo}`
-        );
-        const data = await res.json();
-
-        if (res.ok) {
-          const dashboardsData = data.dashboards || [];
-          setDashboards(dashboardsData);
-          await AsyncStorage.setItem(
-            cacheKey,
-            JSON.stringify(dashboardsData)
-          );
-        }
-      } catch (error) {
-        console.error("Error cargando dashboards:", error);
-      } finally {
-        setLoading(false);
+      // Muestra caché inmediatamente mientras carga
+      if (cache) {
+        setDashboards(JSON.parse(cache));
+        setLoading(false); // ← quita el spinner rápido si hay caché
       }
-    };
 
-    cargarDashboards();
-  }, [proyectoId, tipo]);
+      // Siempre consulta el servidor para tener datos frescos
+      const res = await fetch(
+        `${URL}/dashboards_con_embed/${proyectoId}/?usuario_id=${usuario.id}&tipo=${tipo}`
+      );
+      const data = await res.json();
+
+      if (res.ok) {
+        const dashboardsData = data.dashboards || [];
+        setDashboards(dashboardsData);  // ← sobreescribe con datos nuevos
+        await AsyncStorage.setItem(cacheKey, JSON.stringify(dashboardsData));
+      }
+    } catch (error) {
+      console.error("Error cargando dashboards:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  cargarDashboards();
+}, [proyectoId, tipo]);
 
   const irTablero = (dashboard: DashboardItem) => {
     navigation.navigate("Tableros", {
@@ -154,20 +153,7 @@ const DashBoard: React.FC = () => {
     });
   };
 
-  const obtenerIcono = (nombre: string) => {
-    const n = nombre.toLowerCase();
-    if (n.includes("financiero")) return financiero;
-    if (n.includes("indicadores")) return indicadores;
-    if (n.includes("operativo")) return operativo;
-    if (n.includes("agenda")) return agenda;
-    if (n.includes("aranda")) return aranda;
-    if (n.includes("multa")) return multa;
-    if (n.includes("conciliación")) return conciliacion;
-    if (n.includes("recaudo")) return recaudo;
-    if (n.includes("consulta")) return consulta;
-    if (n.includes("predictivo")) return predictivo;
-    return predeterminado;
-  };
+
 
   if (loading) {
     return (
@@ -254,7 +240,7 @@ const DashBoard: React.FC = () => {
               <TarjetaDashboard
                 key={dashboard.id}
                 dashboard={dashboard}
-                icono={obtenerIcono(dashboard.nombre_dashboard)}
+                icono={dashboard.imagen_url || predeterminado}
                 cardWidth={CARD_WIDTH}
                 onPress={() => irTablero(dashboard)}
               />
