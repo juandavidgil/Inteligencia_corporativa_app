@@ -2,7 +2,7 @@
   "expo": {
     "name": "Inteligencia Corporativa",
     "slug": "Inteligencia_Corporativa_app",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "default",
     "icon": "./assets/img/data.png",
     "splash": {
@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.productonopara.inteligenciacorporativa",
-      "buildNumber": "4",
+      "buildNumber": "5",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
