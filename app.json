@@ -8,11 +8,15 @@
     "splash": {
       "image": "./assets/img/data.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F2F2F2"
+      "backgroundColor": "#FFFFFF"
     },
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging"
+    ],
     "scheme": "inteligenciacorporativaapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled":true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.productonopara.inteligenciacorporativa",
@@ -23,10 +27,11 @@
     },
     "android": {
       "package": "com.producto_no_para.inteligenciacorporativa",
+      "googleServicesFile": "./google-services.json", 
       "icon": "./assets/img/data.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/img/data.png",
-        "backgroundColor": "#F2F2F2"
+        "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false

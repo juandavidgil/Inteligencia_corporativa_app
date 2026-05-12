@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "498644623537",
+    "project_id": "inteligencia-corporativa-65201",
+    "storage_bucket": "inteligencia-corporativa-65201.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:498644623537:android:2fdbf8c135bf60a2894290",
+        "android_client_info": {
+          "package_name": "com.producto_no_para.inteligenciacorporativa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAU8cPFs7rsYen_OqIYina3jcL34EJTqbU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

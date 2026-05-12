@@ -1,6 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
 import CambiarContrasena from "./Pantallas/CambiarContrasena";
 import Carpetas from './Pantallas/Carpetas';
 import DashBoard from './Pantallas/DashBoards';
@@ -12,10 +11,22 @@ import TiposDashboards from "./Pantallas/TiposDashboards";
 import VerificarCorreo from "./Pantallas/VerificarCorreo";
 import { StackParamList } from './types/types';
 
+import messaging from '@react-native-firebase/messaging';
+import React, { useEffect } from 'react';
 
 const Stack = createNativeStackNavigator<StackParamList>();
 
 export default function App() {
+
+  useEffect(() => {
+    const init = async () => {
+      await messaging().requestPermission();
+      const token = await messaging().getToken();
+      console.log('FCM Token:', token);
+    };
+    init();
+  }, []);
+
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>

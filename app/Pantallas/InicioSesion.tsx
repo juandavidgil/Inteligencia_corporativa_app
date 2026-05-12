@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import messaging from '@react-native-firebase/messaging';
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
@@ -119,6 +120,26 @@ const InicioDeSesion: React.FC = () => {
       await AsyncStorage.setItem("usuario", JSON.stringify(data.usuario));
       await AsyncStorage.setItem("access_token", data.access);
       await AsyncStorage.setItem("refresh_token", data.refresh);
+
+
+      try{
+        const fmcToken = await messaging().getToken();
+        await fetch(`${URL}/guardar-token/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${data.access}`,
+          },
+          body: JSON.stringify({
+            token: fmcToken,
+            dispositivo: Platform.OS
+          })
+        }
+        )
+      }
+      catch (fmcError){
+        console.log("No se pudo registrar el token FMC:", fmcError);
+      }
       
       if (data.acepto_terminos) {
         await cargarProyectos(data.usuario.id)
