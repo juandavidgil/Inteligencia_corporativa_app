@@ -2,7 +2,7 @@
   "expo": {
     "name": "Inteligencia Corporativa",
     "slug": "Inteligencia_Corporativa_app",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "default",
     "notification":{
       "icon": "./assets/img/data_sinfondo.png",
@@ -25,7 +25,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.productonopara.inteligenciacorporativa",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "buildNumber": "5",
+      "buildNumber": "6",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
