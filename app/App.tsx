@@ -18,14 +18,37 @@ const Stack = createNativeStackNavigator<StackParamList>();
 
 export default function App() {
 
-  useEffect(() => {
-    const init = async () => {
-      await messaging().requestPermission();
-      const token = await messaging().getToken();
-      console.log('FCM Token:', token);
-    };
-    init();
-  }, []);
+useEffect(() => {
+  const init = async () => {
+    try {
+
+      // Necesario especialmente en iOS
+      await messaging().registerDeviceForRemoteMessages();
+
+      // Solicitar permisos
+      const authStatus = await messaging().requestPermission();
+      console.log('AUTH STATUS:', authStatus);
+
+      const enabled =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+      if (enabled) {
+        // Obtener token FCM
+        const token = await messaging().getToken();
+
+        console.log('FCM Token:', token);
+
+        // Aquí puedes enviarlo a tu backend
+      }
+
+    } catch (error) {
+      console.log('Error obteniendo token FCM:', error);
+    }
+  };
+
+  init();
+}, []);
 
   return (
     <NavigationContainer>

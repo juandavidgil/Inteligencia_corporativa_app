@@ -4,6 +4,10 @@
     "slug": "Inteligencia_Corporativa_app",
     "version": "1.0.2",
     "orientation": "default",
+    "notification":{
+      "icon": "./assets/img/data_sinfondo.png",
+      "color": "#ffffff"
+    },
     "icon": "./assets/img/data.png",
     "splash": {
       "image": "./assets/img/data.png",
@@ -20,6 +24,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.productonopara.inteligenciacorporativa",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "buildNumber": "5",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
