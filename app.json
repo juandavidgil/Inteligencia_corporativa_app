@@ -4,7 +4,7 @@
     "slug": "Inteligencia_Corporativa_app",
     "version": "1.0.3",
     "orientation": "default",
-    "notification":{
+    "notification": {
       "icon": "./assets/img/data_sinfondo.png",
       "color": "#ffffff"
     },
@@ -20,7 +20,7 @@
     ],
     "scheme": "inteligenciacorporativaapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled":true,
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.productonopara.inteligenciacorporativa",
@@ -32,14 +32,17 @@
     },
     "android": {
       "package": "com.producto_no_para.inteligenciacorporativa",
-      "googleServicesFile": "./google-services.json", 
+      "googleServicesFile": "./google-services.json",
       "icon": "./assets/img/data.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/img/data.png",
         "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "POST_NOTIFICATIONS"
+      ]
     },
     "web": {
       "output": "single"

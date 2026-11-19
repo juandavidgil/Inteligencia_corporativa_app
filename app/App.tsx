@@ -1,5 +1,8 @@
+import messaging from '@react-native-firebase/messaging';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React, { useEffect } from 'react';
+import { PermissionsAndroid, Platform } from 'react-native';
 import CambiarContrasena from "./Pantallas/CambiarContrasena";
 import Carpetas from './Pantallas/Carpetas';
 import DashBoard from './Pantallas/DashBoards';
@@ -11,8 +14,6 @@ import TiposDashboards from "./Pantallas/TiposDashboards";
 import VerificarCorreo from "./Pantallas/VerificarCorreo";
 import { StackParamList } from './types/types';
 
-import messaging from '@react-native-firebase/messaging';
-import React, { useEffect } from 'react';
 
 const Stack = createNativeStackNavigator<StackParamList>();
 
@@ -22,11 +23,23 @@ useEffect(() => {
   const init = async () => {
     try {
 
-      // Necesario especialmente en iOS
+      // Android 13+
+      if (Platform.OS === 'android' && Platform.Version >= 33) {
+        const result = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+        );
+
+        console.log('POST_NOTIFICATIONS:', result);
+      }
+
+      console.log('Registrando dispositivo...');
+
       await messaging().registerDeviceForRemoteMessages();
 
-      // Solicitar permisos
+      console.log('Dispositivo registrado');
+
       const authStatus = await messaging().requestPermission();
+
       console.log('AUTH STATUS:', authStatus);
 
       const enabled =
@@ -34,16 +47,17 @@ useEffect(() => {
         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
       if (enabled) {
-        // Obtener token FCM
+
         const token = await messaging().getToken();
 
-        console.log('FCM Token:', token);
+        console.log('FCM TOKEN:', token);
 
-        // Aquí puedes enviarlo a tu backend
       }
 
     } catch (error) {
+
       console.log('Error obteniendo token FCM:', error);
+
     }
   };
 
